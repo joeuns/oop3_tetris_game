@@ -59,3 +59,6 @@
 [Bb]in/
 
 [Oo]bj/
+
+## visual studio 설정
+.vs/
