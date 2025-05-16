@@ -1,0 +1,61 @@
+## 빌드 결과물
+
+*.obj
+
+*.exe
+
+*.pdb
+
+*.ilk
+
+*.log
+
+*.dll
+
+*.lib
+
+*.sbr
+
+
+
+## 중간 결과물
+
+*.ipch
+
+*.aps
+
+*.ncb
+
+*.sdf
+
+*.opensdf
+
+*.tlog
+
+
+
+## 사용자 설정
+
+*.suo
+
+*.user
+
+*.userosscache
+
+*.sln.docstates
+
+
+
+## 디버그 관련
+
+*.cache
+
+*.dbmdl
+
+
+
+## 빌드 폴더
+
+[Bb]in/
+
+[Oo]bj/
