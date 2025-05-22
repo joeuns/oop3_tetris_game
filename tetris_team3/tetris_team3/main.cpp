@@ -1,8 +1,8 @@
 #include "Game.h"
+#include <iostream> 
 
 int main() {
     TetrisGame game;
-    game.init();  // 스테이지/레벨 초기화, 콘솔 세팅 등
-    game.run();   // 메인 게임 루프 시작
+    game.run();
     return 0;
 }

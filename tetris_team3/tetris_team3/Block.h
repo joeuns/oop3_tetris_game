@@ -1,27 +1,32 @@
-#pragma once
+ï»¿#pragma once
 
-#include "Board.h"
+#include "Board.h" // Board.hë¥¼ ë¨¼ì € í¬í•¨í•˜ëŠ” ê²ƒì´ ì¢‹ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤ (ì˜ì¡´ì„± ìˆœì„œ).
 #include <array>
 
-/* ÇÏ³ªÀÇ ºí·°À» Ç¥ÇöÇÏ°í È¸Àü, ÀÌµ¿ µîÀÇ µ¿ÀÛÀ» ´ã´çÇÏ´Â Å¬·¡½º */
+/* í•˜ë‚˜ì˜ ë¸”ëŸ­ì„ í‘œí˜„í•˜ê³  íšŒì „, ì´ë™ ë“±ì˜ ë™ì‘ì„ ë‹´ë‹¹í•˜ëŠ” í´ë˜ìŠ¤ */
 class Block {
 public:
-    Block(int shape); // ºí·° »ı¼ºÀÚ: ¸ğ¾ç ¹øÈ£·Î ÃÊ±âÈ­
-    void reset(int shape, int startX, int startY); // ºí·°À» »õ·Î ¼³Á¤ÇÏ°í ½ÃÀÛ À§Ä¡·Î ÃÊ±âÈ­
-    bool move(int dx, int dy, const Board& board); // ºí·°À» (dx, dy)¸¸Å­ ÀÌµ¿½Ãµµ. ÀÌµ¿ °¡´ÉÇÏ¸é true
-    void rotate(const Board& board); // ºí·°À» È¸Àü½Ãµµ. °¡´ÉÇÏ¸é Àû¿ë
+    Block(int shape); // ë¸”ëŸ­ ìƒì„±ì: ëª¨ì–‘ ë²ˆí˜¸ë¡œ ì´ˆê¸°í™”
+    void reset(int shape, int startX, int startY); // ë¸”ëŸ­ì„ ìƒˆë¡œ ì„¤ì •í•˜ê³  ì‹œì‘ ìœ„ì¹˜ë¡œ ì´ˆê¸°í™”
+    bool move(int dx, int dy, const Board& board); // ë¸”ëŸ­ì„ (dx, dy)ë§Œí¼ ì´ë™ì‹œë„. ì´ë™ ê°€ëŠ¥í•˜ë©´ true
+    void rotate(const Board& board); // ë¸”ëŸ­ì„ íšŒì „ì‹œë„. ê°€ëŠ¥í•˜ë©´ ì ìš©
 
-    // ºí·° »óÅÂ Á¶È¸ (getterµé)
+    // ë¸”ëŸ­ ìƒíƒœ ì¡°íšŒ (getterë“¤)
     int getShape() const;
     int getAngle() const;
     int getX() const;
     int getY() const;
 
-private:
-    int shape_; // ºí·° ¸ğ¾ç Á¾·ù (0~6)
-    int angle_; // È¸Àü »óÅÂ (0~3)
-    int x_, y_; // ÇöÀç À§Ä¡
+    // 4x4 ê·¸ë¦¬ë“œ ë‚´ì˜ ë¸”ë¡ ëª¨ì–‘ ë°ì´í„° ì ‘ê·¼
+    static char getBlockShapeData(int shape, int angle, int row, int col);
 
-    // 7Á¾ ºí·°ÀÇ È¸Àü »óÅÂ¸¦ Æ÷ÇÔÇÑ Á¤Àû µ¥ÀÌÅÍ
-    static const std::array<std::array<std::array<char, 4>, 4>, 7> shapes_;
+    // 7ì¢… ë¸”ëŸ­ì˜ íšŒì „ ìƒíƒœë¥¼ í¬í•¨í•œ ì •ì  ë°ì´í„°
+    // ì‹¤ì œ ê²Œì„ì—ì„œëŠ” ì´ ë°ì´í„°ë¥¼ ì˜¬ë°”ë¥´ê²Œ ì •ì˜í•´ì•¼ í•©ë‹ˆë‹¤.
+    // ì˜ˆì‹œë¡œ Block.cppì— ì •ì˜ë˜ì–´ ìˆìŠµë‹ˆë‹¤.
+    static const char shapes_[7][4][4][4]; // ì„ ì–¸ë§Œ í•˜ê³  ì •ì˜ëŠ” cpp íŒŒì¼ì—ì„œ
+
+private:
+    int shape_; // ë¸”ëŸ­ ëª¨ì–‘ ì¢…ë¥˜ (0~6)
+    int angle_; // íšŒì „ ìƒíƒœ (0~3)
+    int x_, y_; // í˜„ì¬ ìœ„ì¹˜ (ë¸”ë¡ 4x4 ë°°ì—´ì˜ ì¢Œìƒë‹¨ ê¸°ì¤€ ë³´ë“œ ì¢Œí‘œ)
 };

@@ -1,25 +1,30 @@
-#pragma once
+ï»¿#pragma once
 
 #include <array>
+#include <vector> // clearFullLinesì—ì„œ vectorë¥¼ ì‚¬ìš©í•  ê²½ìš° í•„ìš” (í˜„ì¬ëŠ” ë¯¸ì‚¬ìš©)
 
-/* °ÔÀÓÆÇÀÇ »óÅÂ(21x14 ±×¸®µå)¸¦ °ü¸®ÇÏ°í 
-ºí·° Ãæµ¹, º´ÇÕ, ¶óÀÎ »èÁ¦ µîÀÇ ·ÎÁ÷À» Ã³¸®ÇÏ´Â Å¬·¡½º */
+/* ê²Œì„íŒì˜ ìƒíƒœ(21x14 ê·¸ë¦¬ë“œ)ë¥¼ ê´€ë¦¬í•˜ê³ 
+ë¸”ëŸ­ ì¶©ëŒ, ë³‘í•©, ë¼ì¸ ì‚­ì œ ë“±ì˜ ë¡œì§ì„ ì²˜ë¦¬í•˜ëŠ” í´ë˜ìŠ¤ */
 
 class Board {
 public:
-    static constexpr int ROWS = 21; // ¼¼·Î ÁÙ ¼ö
-    static constexpr int COLS = 14; // °¡·Î Ä­ ¼ö
+    static constexpr int ROWS = 21; // ì„¸ë¡œ ì¤„ ìˆ˜ (0~20)
+    static constexpr int COLS = 14; // ê°€ë¡œ ì¹¸ ìˆ˜ (0~13)
 
+    // grid_ ì…€ ìƒíƒœ (ì˜ˆì‹œ)
+    static constexpr char EMPTY_CELL = 0;
+    static constexpr char WALL_CELL = 1; // ë²½ ë˜ëŠ” ì´ë¯¸ ìŒ“ì¸ ë¸”ë¡
+    // í•„ìš”í•˜ë‹¤ë©´ ë‹¤ë¥¸ ë¸”ë¡ ì¢…ë¥˜ë¥¼ ë‚˜íƒ€ë‚´ëŠ” ê°’ì„ ì‚¬ìš©í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
 
-    Board(); // °ÔÀÓÆÇÀ» ÃÊ±âÈ­ÇÑ´Ù (º®/¹Ù´Ú »ı¼º µî)
-    void init(); // ÁÖ¾îÁø ºí·° Á¤º¸·Î Ãæµ¹ ¿©ºÎ¸¦ °Ë»çÇÑ´Ù
-    bool strikeCheck(int shape, int angle, int x, int y) const; // ºí·°À» °ÔÀÓÆÇ¿¡ º´ÇÕÇÑ´Ù (Ãæµ¹ ½Ã false ¹İÈ¯)
-    bool mergeBlock(int shape, int angle, int x, int y); // °¡µæ Âù ÁÙÀ» Á¦°ÅÇÏ°í ³»·ÁÁØ´Ù, »èÁ¦ÇÑ ÁÙ ¼ö ¹İÈ¯
-    int clearFullLines(); // °¡µæ Âù ÁÙÀ» Á¦°ÅÇÏ°í ³»·ÁÁØ´Ù, »èÁ¦ÇÑ ÁÙ ¼ö ¹İÈ¯
+    Board();
+    void init(); // ê²Œì„íŒì„ ì´ˆê¸°í™”í•œë‹¤ (ë²½/ë°”ë‹¥ ìƒì„± ë“±)
+    bool strikeCheck(int shape, int angle, int x, int y) const; // ì£¼ì–´ì§„ ë¸”ëŸ­ ì •ë³´ë¡œ ì¶©ëŒ ì—¬ë¶€ë¥¼ ê²€ì‚¬í•œë‹¤
+    bool mergeBlock(int shape, int angle, int x, int y); // ë¸”ëŸ­ì„ ê²Œì„íŒì— ë³‘í•©í•œë‹¤
+    int clearFullLines(); // ê°€ë“ ì°¬ ì¤„ì„ ì œê±°í•˜ê³  ë‚´ë ¤ì¤€ë‹¤, ì‚­ì œí•œ ì¤„ ìˆ˜ ë°˜í™˜
 
-    // ¿ÜºÎ¿¡¼­ °ÔÀÓÆÇ ±×¸®µå(ÀĞ±â Àü¿ë)¸¦ °¡Á®¿Â´Ù
+    // ì™¸ë¶€ì—ì„œ ê²Œì„íŒ ê·¸ë¦¬ë“œ(ì½ê¸° ì „ìš©)ë¥¼ ê°€ì ¸ì˜¨ë‹¤
     const std::array<std::array<char, COLS>, ROWS>& getGrid() const;
 
 private:
-    std::array<std::array<char, COLS>, ROWS> grid_; // °ÔÀÓÆÇ ±×¸®µå »óÅÂ
+    std::array<std::array<char, COLS>, ROWS> grid_; // ê²Œì„íŒ ê·¸ë¦¬ë“œ ìƒíƒœ
 };
