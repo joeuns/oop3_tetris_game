@@ -83,26 +83,29 @@ bool Block::move(int dx, int dy, const Board& board) {
 
 void Block::rotate(const Board& board) {
     int newAngle = (angle_ + 1) % 4; // 0, 1, 2, 3 순환
-    // TODO: 실제 테트리스는 벽이나 다른 블록에 막힐 경우 회전 시 위치를 살짝 조정하는 "Wall Kick" 기능이 있습니다.
-    // 이 코드에서는 단순 충돌 검사만 합니다.
-    if (!board.strikeCheck(shape_, newAngle, x_, y_)) {
-        angle_ = newAngle;
-    }
-    // Wall Kick 시도 (간단한 예: 좌우로 한 칸씩 이동하여 회전 가능한지 확인)
-    else {
-        // 왼쪽으로 한 칸 이동 시도
-        if (!board.strikeCheck(shape_, newAngle, x_ - 1, y_)) {
-            x_ -= 1;
+
+    // Wall Kick offset 목록: 현재 위치에서 회전 가능한지 확인할 좌표 이동 후보들
+    // 순서대로 시도됨
+    const int offsetCount = 5;
+    const int dx[offsetCount] = { 0, -1, 1, -2, 2 };
+    const int dy[offsetCount] = { 0, 0, 0, 0, 0 };
+
+    for (int i = 0; i < offsetCount; ++i) {
+        int newX = x_ + dx[i];
+        int newY = y_ + dy[i];
+
+        if (!board.strikeCheck(shape_, newAngle, newX, newY)) {
+            // 성공: 회전 적용
             angle_ = newAngle;
+            x_ = newX;
+            y_ = newY;
+            return;
         }
-        // 오른쪽으로 한 칸 이동 시도
-        else if (!board.strikeCheck(shape_, newAngle, x_ + 1, y_)) {
-            x_ += 1;
-            angle_ = newAngle;
-        }
-        // 필요하다면 더 정교한 Wall Kick 로직 (SRS 규칙 등)을 구현할 수 있습니다.
     }
+
+    // 회전 불가능하면 아무 일도 하지 않음
 }
+
 
 void Block::rotate() {
     int newAngle = (angle_ + 1) % 4; // 0, 1, 2, 3 순환
