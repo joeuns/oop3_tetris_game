@@ -1,16 +1,20 @@
-ï»¿#include "Renderer.h"
-#include "Color.h"    
-#include <Windows.h> 
-#include <iostream>  
-#include <vector>
-#include <string>
+#include "Renderer.h"
+#include "Color.h"    // »ö»ó enum
+#include <Windows.h>  // Windows API (ÄÜ¼Ö Á¦¾î)
+#include <iostream>   // std::cout
+#include <vector>     // ·Î°í µî¿¡¼­ »ç¿ëµÉ ¼ö ÀÖÀ½
+#include <string>     // drawStats¿¡¼­ ¼ıÀÚ->¹®ÀÚ¿­ º¯È¯ ¹× ±æÀÌ °è»ê¿¡ »ç¿ë
 #include <conio.h>
+#include <time.h>
+
+// Block.h´Â Renderer.h¿¡ ÀÌ¹Ì Æ÷ÇÔµÇ¾î ÀÖÀ¸¹Ç·Î Áßº¹ Æ÷ÇÔ ºÒÇÊ¿ä
+// #include "Block.h"
 
 Renderer::Renderer(int offsetX, int offsetY) : offsetX_(offsetX), offsetY_(offsetY), statsLabelsPrinted_(false) {}
 
 void Renderer::initConsole() {
-    system("mode con: cols=80 lines=25"); // ì½˜ì†” í¬ê¸° ì„¤ì • (ì˜ˆì‹œ)
-    system("cls"); // í™”ë©´ ì§€ìš°ê¸°
+    system("mode con: cols=80 lines=25"); // ÄÜ¼Ö Å©±â ¼³Á¤ (¿¹½Ã)
+    system("cls"); // È­¸é Áö¿ì±â
     hideCursor();
 }
 
@@ -18,7 +22,7 @@ void Renderer::hideCursor() {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_CURSOR_INFO cursorInfo;
     GetConsoleCursorInfo(hConsole, &cursorInfo);
-    cursorInfo.bVisible = FALSE; // ì»¤ì„œ ìˆ¨ê¹€
+    cursorInfo.bVisible = FALSE; // Ä¿¼­ ¼û±è
     SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
 
@@ -31,6 +35,7 @@ void Renderer::gotoXY(int x, int y) {
 }
 
 void Renderer::setColor(int color) {
+    // static HANDLE std_output_handle = GetStdHandle(STD_OUTPUT_HANDLE); // ¸â¹ö º¯¼ö·Î ÇÏ°Å³ª ¸Å¹ø È£Ãâ
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
 }
@@ -39,73 +44,73 @@ void Renderer::drawBoard(const Board& board) {
     const auto& grid = board.getGrid();
     for (int i = 0; i < Board::ROWS; ++i) {
         for (int j = 0; j < Board::COLS; ++j) {
-            gotoXY(j * 2 + offsetX_, i + offsetY_); // ê°€ë¡œ 2ì¹¸ì”© ì‚¬ìš©
+            gotoXY(j * 2 + offsetX_, i + offsetY_); // °¡·Î 2Ä­¾¿ »ç¿ë
             char cell = grid[i][j];
-            if (cell == Board::WALL_CELL) { // ë²½ ë˜ëŠ” ìŒ“ì¸ ë¸”ë¡
-                // ë²½ ìƒ‰ìƒ (ì˜ˆ: íšŒìƒ‰ ë˜ëŠ” ë‹¤ì±„ë¡­ê²Œ)
-                setColor((j == 0 || j == Board::COLS - 1 || i == Board::ROWS - 1) ? GRAY : DARK_GRAY); // í…Œë‘ë¦¬ ë‹¤ë¥¸ìƒ‰
-                //setColor(GRAY); // ë‹¨ìˆœí•œ ë²½ ìƒ‰ìƒ
-                std::cout << "â– "; // ì±„ì›Œì§„ ì¹¸ (ê½‰ì°¬ ë„¤ëª¨ ë¬¸ì)
+            if (cell == Board::WALL_CELL) { // º® ¶Ç´Â ½×ÀÎ ºí·Ï
+                // º® »ö»ó (¿¹: È¸»ö ¶Ç´Â ´ÙÃ¤·Ó°Ô)
+                setColor((j == 0 || j == Board::COLS - 1 || i == Board::ROWS - 1) ? GRAY : DARK_GRAY); // Å×µÎ¸® ´Ù¸¥»ö
+                // setColor(GRAY); // ´Ü¼øÇÑ º® »ö»ó
+                std::cout << "¡á"; // Ã¤¿öÁø Ä­ (²ËÂù ³×¸ğ ¹®ÀÚ)
             }
-            else { // ë¹ˆ ê³µê°„ (Board::EMPTY_CELL)
-                setColor(BLACK); // ë°°ê²½ìƒ‰ (ë˜ëŠ” DARK_GRAY ë“±)
-                std::cout << "  "; // ë¹ˆ ì¹¸ (ê³µë°± 2ê°œ)
+            else { // ºó °ø°£ (Board::EMPTY_CELL)
+                setColor(BLACK); // ¹è°æ»ö (¶Ç´Â DARK_GRAY µî)
+                std::cout << "  "; // ºó Ä­ (°ø¹é 2°³)
             }
         }
     }
-    setColor(BLACK); // ê¸°ë³¸ ìƒ‰ìƒìœ¼ë¡œ ë³µì›
-    gotoXY(0, Board::ROWS + offsetY_ + 1); // ì»¤ì„œ ê²Œì„ ì˜ì—­ ë°”ê¹¥ìœ¼ë¡œ ì´ë™
+    setColor(BLACK); // ±âº» »ö»óÀ¸·Î º¹¿ø
+    gotoXY(0, Board::ROWS + offsetY_ + 1); // Ä¿¼­ °ÔÀÓ ¿µ¿ª ¹Ù±ùÀ¸·Î ÀÌµ¿
 }
 
 
 void Renderer::drawBlock(const Block& block, int customOffsetX, int customOffsetY) {
     int shape = block.getShape();
     int angle = block.getAngle();
-    // ë¸”ë¡ì˜ ì¢Œìƒë‹¨ ê¸°ì¤€ ì¢Œí‘œ (Board ì¢Œí‘œê³„)
+    // ºí·ÏÀÇ ÁÂ»ó´Ü ±âÁØ ÁÂÇ¥ (Board ÁÂÇ¥°è)
     int blockBoardX = block.getX();
     int blockBoardY = block.getY();
 
-    // ì‹¤ì œ í™”ë©´ì— ê·¸ë¦´ ë•Œ ì‚¬ìš©í•  ì˜¤í”„ì…‹ ê²°ì •
-    // customOffsetX/Yê°€ -1 (ê¸°ë³¸ê°’)ì´ë©´ ë©¤ë²„ ë³€ìˆ˜ offsetX_/offsetY_ ì‚¬ìš©
+    // ½ÇÁ¦ È­¸é¿¡ ±×¸± ¶§ »ç¿ëÇÒ ¿ÀÇÁ¼Â °áÁ¤
+    // customOffsetX/Y°¡ -1 (±âº»°ª)ÀÌ¸é ¸â¹ö º¯¼ö offsetX_/offsetY_ »ç¿ë
     int renderPosX = (customOffsetX == -1) ? blockBoardX * 2 + offsetX_ : customOffsetX;
     int renderPosY = (customOffsetY == -1) ? blockBoardY + offsetY_ : customOffsetY;
 
 
-    // ë¸”ë¡ ì¢…ë¥˜ì— ë”°ë¥¸ ìƒ‰ìƒ ì„¤ì •
-    int blockColor = WHITE; // ê¸°ë³¸ìƒ‰
+    // ºí·Ï Á¾·ù¿¡ µû¸¥ »ö»ó ¼³Á¤
+    int blockColor = WHITE; // ±âº»»ö
     switch (shape) {
-    case 0: blockColor = RED; break;
-    case 1: blockColor = YELLOW; break;
-    case 2: blockColor = VIOLET; break;
-    case 3: blockColor = BLUE; break;
-    case 4: blockColor = DARK_YELLOW; break;
-    case 5: blockColor = GREEN; break;
-    case 6: blockColor = SKY_BLUE; break;
+    case 0: blockColor = RED; break;        // I
+    case 1: blockColor = YELLOW; break;     // O
+    case 2: blockColor = VIOLET; break;    // T  (¿ø·¡ º¸¶ó»ö °è¿­)
+    case 3: blockColor = BLUE; break;       // L
+    case 4: blockColor = DARK_YELLOW; break;       // J (¿ø·¡ ÁÖÈ²»ö °è¿­, DARK_YELLOW·Î ´ëÃ¼)
+    case 5: blockColor = GREEN; break;      // S
+    case 6: blockColor = SKY_BLUE; break;   // Z  (¿ø·¡ ÇÏ´Ã»ö/Ã»·Ï»ö °è¿­)
     default: blockColor = GRAY; break;
     }
     setColor(blockColor);
 
-    for (int r = 0; r < 4; ++r) { // ë¸”ë¡ 4x4 ë‚´ë¶€ í–‰
-        for (int c = 0; c < 4; ++c) { // ë¸”ë¡ 4x4 ë‚´ë¶€ ì—´
+    for (int r = 0; r < 4; ++r) { // ºí·Ï 4x4 ³»ºÎ Çà
+        for (int c = 0; c < 4; ++c) { // ºí·Ï 4x4 ³»ºÎ ¿­
             if (Block::getBlockShapeData(shape, angle, r, c) == 1) {
-                // ë¸”ë¡ì˜ (0,0)ì´ renderPosX, renderPosYì— ê·¸ë ¤ì§€ë„ë¡ ê³„ì‚°
-                // ë¸”ë¡ ë‚´ë¶€ ì…€ (c,r)ì˜ í™”ë©´ìƒ ìœ„ì¹˜:
-                // X: renderPosX + c * 2 (ê°€ë¡œ 2ì¹¸)
+                // ºí·ÏÀÇ (0,0)ÀÌ renderPosX, renderPosY¿¡ ±×·ÁÁöµµ·Ï °è»ê
+                // ºí·Ï ³»ºÎ ¼¿ (c,r)ÀÇ È­¸é»ó À§Ä¡:
+                // X: renderPosX + c * 2 (°¡·Î 2Ä­)
                 // Y: renderPosY + r
                 int screenX = renderPosX + c * 2;
                 int screenY = renderPosY + r;
 
-                // ë¸”ë¡ì´ ê²Œì„ ë³´ë“œ ìƒë‹¨(y < 0)ì— ìˆì„ ê²½ìš°, í™”ë©´ì— ê·¸ë¦¬ì§€ ì•ŠìŒ
-                // ë‹¨, customOffsetYê°€ ì‚¬ìš©ëœ ê²½ìš°ëŠ” (ì˜ˆ: Next ë¸”ë¡) y ì¢Œí‘œë¥¼ ê·¸ëŒ€ë¡œ ì‚¬ìš©
+                // ºí·ÏÀÌ °ÔÀÓ º¸µå »ó´Ü(y < 0)¿¡ ÀÖÀ» °æ¿ì, È­¸é¿¡ ±×¸®Áö ¾ÊÀ½
+                // ´Ü, customOffsetY°¡ »ç¿ëµÈ °æ¿ì´Â (¿¹: Next ºí·Ï) y ÁÂÇ¥¸¦ ±×´ë·Î »ç¿ë
                 if (customOffsetY != -1 || (blockBoardY + r >= 0)) {
                     gotoXY(screenX, screenY);
-                    std::cout << "â– ";
+                    std::cout << "¡á";
                 }
             }
         }
     }
-    setColor(BLACK); // ê¸°ë³¸ ìƒ‰ìƒ ë³µì›
-    // gotoXY(0, Board::ROWS + offsetY_ + 2); // ì»¤ì„œ ê²Œì„ ì˜ì—­ ë°”ê¹¥ìœ¼ë¡œ ì´ë™
+    setColor(BLACK); // ±âº» »ö»ó º¹¿ø
+    // gotoXY(0, Board::ROWS + offsetY_ + 2); // Ä¿¼­ °ÔÀÓ ¿µ¿ª ¹Ù±ùÀ¸·Î ÀÌµ¿
 }
 
 void Renderer::eraseBlock(const Block& block, int customOffsetX, int customOffsetY) {
@@ -117,7 +122,7 @@ void Renderer::eraseBlock(const Block& block, int customOffsetX, int customOffse
     int renderPosX = (customOffsetX == -1) ? blockBoardX * 2 + offsetX_ : customOffsetX;
     int renderPosY = (customOffsetY == -1) ? blockBoardY + offsetY_ : customOffsetY;
 
-    setColor(BLACK); // ë°°ê²½ìƒ‰ìœ¼ë¡œ ì§€ì›€
+    setColor(BLACK); // ¹è°æ»öÀ¸·Î Áö¿ò
 
     for (int r = 0; r < 4; ++r) {
         for (int c = 0; c < 4; ++c) {
@@ -126,49 +131,57 @@ void Renderer::eraseBlock(const Block& block, int customOffsetX, int customOffse
                 int screenY = renderPosY + r;
                 if (customOffsetY != -1 || (blockBoardY + r >= 0)) {
                     gotoXY(screenX, screenY);
-                    std::cout << "  "; // ê³µë°± 2ì¹¸ìœ¼ë¡œ ì§€ì›€
+                    std::cout << "  "; // °ø¹é 2Ä­À¸·Î Áö¿ò
                 }
             }
         }
     }
+    // gotoXY(0, Board::ROWS + offsetY_ + 2);
 }
 
 void Renderer::clearArea(int x, int y, int widthChars, int heightChars) {
-    setColor(BLACK); // ë°°ê²½ìƒ‰ìœ¼ë¡œ ì„¤ì •
+    setColor(BLACK); // ¹è°æ»öÀ¸·Î ¼³Á¤
     for (int r = 0; r < heightChars; ++r) {
         gotoXY(x, y + r);
         for (int c = 0; c < widthChars; ++c) {
-            std::cout << " "; // ê³µë°±ìœ¼ë¡œ ì±„ì›€
+            std::cout << " "; // °ø¹éÀ¸·Î Ã¤¿ò
         }
     }
 }
 
 void Renderer::drawNextBlockArea(const Block& nextBlock) {
-    // 1. Next ë¸”ë¡ ì˜ì—­ í…Œë‘ë¦¬ ê·¸ë¦¬ê¸° ë° ë‚´ë¶€ í´ë¦¬ì–´
-    // í…Œë‘ë¦¬ ìƒ‰ìƒ ì„¤ì • (ì˜ˆ: GRAY)
+    // 1. Next ºí·Ï ¿µ¿ª Å×µÎ¸® ±×¸®±â ¹× ³»ºÎ Å¬¸®¾î
+    // Å×µÎ¸® »ö»ó ¼³Á¤ (¿¹: GRAY)
     setColor(GRAY);
-    int boxScreenX = NEXT_BLOCK_AREA_X; // Renderer ë©¤ë²„ ì˜¤í”„ì…‹ì€ ì—¬ê¸°ì„œ ì‚¬ìš© ì•ˆ í•¨ (ì ˆëŒ€ ì¢Œí‘œ ê¸°ì¤€)
+    int boxScreenX = NEXT_BLOCK_AREA_X; // Renderer ¸â¹ö ¿ÀÇÁ¼ÂÀº ¿©±â¼­ »ç¿ë ¾È ÇÔ (Àı´ë ÁÂÇ¥ ±âÁØ)
     int boxScreenY = NEXT_BLOCK_AREA_Y;
 
     for (int i = 0; i < NEXT_BLOCK_BOX_HEIGHT; ++i) {
         gotoXY(boxScreenX, boxScreenY + i);
         for (int j = 0; j < NEXT_BLOCK_BOX_WIDTH; ++j) {
             if (i == 0 || i == NEXT_BLOCK_BOX_HEIGHT - 1 || j == 0 || j == NEXT_BLOCK_BOX_WIDTH - 1) {
-                std::cout << "â–¡ "; // í…Œë‘ë¦¬ ë¬¸ì (ë˜ëŠ” "â–  ")
+                std::cout << "¡à "; // Å×µÎ¸® ¹®ÀÚ (¶Ç´Â "¡á ")
             }
             else {
-                std::cout << "  "; // ë‚´ë¶€ ê³µë°± (ê°€ë¡œ 2ì¹¸ì”© ê°€ì •)
+                std::cout << "  "; // ³»ºÎ °ø¹é (°¡·Î 2Ä­¾¿ °¡Á¤)
             }
         }
     }
-    // "NEXT" í…ìŠ¤íŠ¸ ì¶”ê°€ (ì„ íƒ ì‚¬í•­)
-    gotoXY(boxScreenX + (NEXT_BLOCK_BOX_WIDTH * 2 - 4) / 2 - 1, boxScreenY - 1); // í…Œë‘ë¦¬ ìœ„ì— ì¤‘ì•™ ì •ë ¬ ì‹œë„
+    // "NEXT" ÅØ½ºÆ® Ãß°¡ (¼±ÅÃ »çÇ×)
+    gotoXY(boxScreenX + (NEXT_BLOCK_BOX_WIDTH * 2 - 4) / 2 - 1, boxScreenY - 1); // Å×µÎ¸® À§¿¡ Áß¾Ó Á¤·Ä ½Ãµµ
     std::cout << "NEXT";
 
-    int blockRenderScreenX = boxScreenX + (NEXT_BLOCK_BOX_WIDTH * 2 - 4 * 2) / 2 + 2; // +2ëŠ” í…Œë‘ë¦¬ ë‘ê»˜ê³ ë ¤
-    // (NEXT_BLOCK_BOX_HEIGHTëŠ” ë¬¸ìë‹¨ìœ„ ë†’ì´, 4ëŠ” ë¸”ë¡ ìµœëŒ€ ë¬¸ìë‹¨ìœ„ ë†’ì´)
+
+    // 2. Next ºí·Ï ±×¸®±â
+    // Next ºí·ÏÀº 4x4 ¿µ¿ª ³»¿¡ ±×·ÁÁö¸ç, ÀÌ ¿µ¿ªÀÇ ÁÂ»ó´Ü À§Ä¡¸¦ °è»êÇÕ´Ï´Ù.
+    // Å×µÎ¸® ³»ºÎ Áß¾Ó¿¡ ºí·ÏÀ» À§Ä¡½ÃÅ°±â À§ÇÑ ¿ÀÇÁ¼Â °è»ê
+    // (NEXT_BLOCK_BOX_WIDTH * 2´Â ¹®ÀÚ´ÜÀ§ ³Êºñ, 4*2´Â ºí·Ï ÃÖ´ë ¹®ÀÚ´ÜÀ§ ³Êºñ)
+    int blockRenderScreenX = boxScreenX + (NEXT_BLOCK_BOX_WIDTH * 2 - 4 * 2) / 2 + 2; // +2´Â Å×µÎ¸® µÎ²²°í·Á
+    // (NEXT_BLOCK_BOX_HEIGHT´Â ¹®ÀÚ´ÜÀ§ ³ôÀÌ, 4´Â ºí·Ï ÃÖ´ë ¹®ÀÚ´ÜÀ§ ³ôÀÌ)
     int blockRenderScreenY = boxScreenY + (NEXT_BLOCK_BOX_HEIGHT - 4) / 2;
 
+    // Block °´Ã¼¸¦ Á÷Á¢ ±×¸®´Â drawBlock ÇÔ¼ö »ç¿ë, custom ¿ÀÇÁ¼Â Àü´Ş
+    // nextBlock ÀÚÃ¼ÀÇ x, y´Â °ÔÀÓº¸µå ±âÁØÀÌ¹Ç·Î »ç¿ëÇÏÁö ¾Ê°í, °è»êµÈ È­¸é ÁÂÇ¥¸¦ Àü´Ş
     drawBlock(nextBlock, blockRenderScreenX - 2, blockRenderScreenY + 1);
 }
 
@@ -176,7 +189,13 @@ void Renderer::drawNextBlockArea(const Block& nextBlock) {
 void Renderer::drawStats(int level, int score, int lines) {
     setColor(GRAY);
 
-    int baseStatsScreenX = STATS_AREA_X; // Renderer.hì— ì •ì˜ëœ ì ˆëŒ€ê°’ ì‚¬ìš©
+    // Åë°è ¿µ¿ªÀÇ ±âº» X ÁÂÇ¥ (º¸µåÀÇ ¿À¸¥ÂÊ)
+    // ÀÌ °ªÀº Renderer »ı¼ºÀÚÀÇ offsetX_ ¿Í´Â º°°³·Î, È­¸é ÀüÃ¼ ·¹ÀÌ¾Æ¿ô»óÀÇ À§Ä¡.
+    // ¸¸¾à STATS_AREA_X°¡ º¸µå ±âÁØ »ó´ë À§Ä¡¶ó¸é offsetX_ + STATS_AREA_X ·Î °è»ê.
+    // ÇöÀç´Â STATS_AREA_X¸¦ Àı´ë È­¸é ÁÂÇ¥·Î »ç¿ë.
+    // ¸¸¾à offsetX_¸¦ È°¿ëÇÏ·Á¸é:
+    // int baseStatsScreenX = offsetX_ + Board::COLS * 2 + 3; // º¸µå ¹Ù·Î ¿·
+    int baseStatsScreenX = STATS_AREA_X; // Renderer.h¿¡ Á¤ÀÇµÈ Àı´ë°ª »ç¿ë
 
     gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, STATS_LABEL_Y_LEVEL);
     std::cout << "STAGE";
@@ -211,14 +230,16 @@ void Renderer::drawStats(int level, int score, int lines) {
 
 
 void Renderer::drawLogo() {
+    
     setColor(WHITE);
-    gotoXY(13, 3);  std::cout << "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“";
-    gotoXY(13, 4);  std::cout << "â”ƒâ—† â—† â—†  â—†â—†â—†  â—† â—† â—†   â—†â—†     â—†   â—† â—† â—†         â”ƒ";
-    gotoXY(13, 5);  std::cout << "â”ƒ  â—†    â—†      â—†     â—† â—†    â—†   â—†             â”ƒ";
-    gotoXY(13, 6);  std::cout << "â”ƒ  â—†    â—†â—†â—†    â—†     â—†â—†     â—†     â—†           â”ƒ";
-    gotoXY(13, 7);  std::cout << "â”ƒ  â—†    â—†      â—†     â—† â—†    â—†       â—†         â”ƒ";
-    gotoXY(13, 8);  std::cout << "â”ƒ  â—†    â—†â—†â—†    â—†     â—†  â—†   â—†   â—† â—† â—†         â”ƒ";
-    gotoXY(13, 9);  std::cout << "â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›";
+    
+    gotoXY(13, 3);  std::cout << "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯";
+    gotoXY(13, 4);  std::cout << "¦­¡ß ¡ß ¡ß  ¡ß¡ß¡ß  ¡ß ¡ß ¡ß   ¡ß¡ß     ¡ß   ¡ß ¡ß ¡ß         ¦­";
+    gotoXY(13, 5);  std::cout << "¦­  ¡ß    ¡ß      ¡ß     ¡ß ¡ß    ¡ß   ¡ß             ¦­";
+    gotoXY(13, 6);  std::cout << "¦­  ¡ß    ¡ß¡ß¡ß    ¡ß     ¡ß¡ß     ¡ß     ¡ß           ¦­";
+    gotoXY(13, 7);  std::cout << "¦­  ¡ß    ¡ß      ¡ß     ¡ß ¡ß    ¡ß       ¡ß         ¦­";
+    gotoXY(13, 8);  std::cout << "¦­  ¡ß    ¡ß¡ß¡ß    ¡ß     ¡ß  ¡ß   ¡ß   ¡ß ¡ß ¡ß         ¦­";
+    gotoXY(13, 9);  std::cout << "¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°";
 
     gotoXY(28, 20);
     std::cout << "Please Press Any Key~!";
@@ -229,7 +250,7 @@ void Renderer::drawLogo() {
                 gotoXY(10, 14 + j);
                 std::cout << "                                                  ";
             }
-            // 4ê°œì˜ ë¸”ëŸ­ ìƒì„± í›„ reset
+            // 4°³ÀÇ ºí·° »ı¼º ÈÄ reset
             Block b1(rand() % 7);
             Block b2(rand() % 7);
             Block b3(rand() % 7);
@@ -237,8 +258,13 @@ void Renderer::drawLogo() {
 
             b1.reset(b1.getShape(), 6, 14);
             b2.reset(b2.getShape(), 12, 14);
-            b3.reset(b3.getShape(), 19, 14);
+            b3.reset(b3.getShape(), 18, 14);
             b4.reset(b4.getShape(), 24, 14);
+
+            for (int i = 0; i < rand() % 4; i++) b1.rotate();
+            for (int i = 0; i < rand() % 4; i++) b2.rotate();
+            for (int i = 0; i < rand() % 4; i++) b3.rotate();
+            for (int i = 0; i < rand() % 4; i++) b4.rotate();
 
             drawBlock(b1);
             drawBlock(b2);
@@ -254,14 +280,14 @@ void Renderer::drawLogo() {
 
 
 void Renderer::drawGameOver() {
-    // í™”ë©´ ì¤‘ì•™ì— ê²Œì„ ì˜¤ë²„ ë©”ì‹œì§€ í‘œì‹œ
-    int centerX = 40; // ëŒ€ëµì ì¸ í™”ë©´ ì¤‘ì•™ X (80ì»¬ëŸ¼ ê¸°ì¤€)
-    int centerY = 12; // ëŒ€ëµì ì¸ í™”ë©´ ì¤‘ì•™ Y (25ë¼ì¸ ê¸°ì¤€)
+    // È­¸é Áß¾Ó¿¡ °ÔÀÓ ¿À¹ö ¸Ş½ÃÁö Ç¥½Ã
+    int centerX = 40; // ´ë·«ÀûÀÎ È­¸é Áß¾Ó X (80ÄÃ·³ ±âÁØ)
+    int centerY = 12; // ´ë·«ÀûÀÎ È­¸é Áß¾Ó Y (25¶óÀÎ ±âÁØ)
 
     std::vector<std::string> gameOverMsg = {
-        "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“",
-        "â”ƒ      G A M E  O V E R      â”ƒ",
-        "â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›"
+        "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯",
+        "¦­      G A M E  O V E R      ¦­",
+        "¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°"
     };
     std::string pressKeyMsg = "Press any key to exit...";
 
@@ -275,9 +301,11 @@ void Renderer::drawGameOver() {
     gotoXY(centerX - pressKeyMsg.length() / 2, centerY + gameOverMsg.size() + 1);
     std::cout << pressKeyMsg;
 
-    while (!_kbhit()) { // í‚¤ ì…ë ¥ ëŒ€ê¸°
+    // ±âÁ¸ _getche(), system("cls")´Â Game Å¬·¡½º³ª main¿¡¼­ Ã³¸®ÇÏµµ·Ï ÇÔ
+    // ¿©±â¼­´Â ±×¸®±â¸¸ ´ã´ç
+    while (!_kbhit()) { // Å° ÀÔ·Â ´ë±â
         Sleep(100);
     }
-    _getche();
-    system("cls");
+    _getche(); // Å° ÀÔ·Â ¼Ò¸ğ
+    system("cls"); // Á¾·á Àü È­¸é Á¤¸®
 }
