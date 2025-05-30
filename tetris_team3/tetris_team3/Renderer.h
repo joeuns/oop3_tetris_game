@@ -3,52 +3,54 @@
 #include "Board.h"
 #include "Block.h"
 #include <string>
+#include <vector>
 
 class Renderer {
 public:
-    Renderer(int offsetX, int offsetY);
+    Renderer();
 
-    void initConsole();
+    void initConsole(bool isTwoPlayerMode);
     void gotoXY(int x, int y);
     void setColor(int color);
     void hideCursor();
 
-    void drawBoard(const Board& board);
-    void drawBlock(const Block& block, int customOffsetX = -1, int customOffsetY = -1);
-    void eraseBlock(const Block& block, int customOffsetX = -1, int customOffsetY = -1);
-    void drawNextBlockArea(const Block& nextBlock);
-    void drawStats(int level, int score, int lines);
+    void drawBoard(const Board& board, int playerIndex);
+    void drawBlock(const Block& block, int playerIndex, int customOffsetX = -1, int customOffsetY = -1);
+    void eraseBlock(const Block& block, int playerIndex, int customOffsetX = -1, int customOffsetY = -1);
+    void drawNextBlockArea(const Block& nextBlock, int playerIndex);
+    void drawStats(int level, int score, int lines, int playerIndex);
     void drawLogo();
     void drawGameOver();
-    void clearArea(int x, int y, int widthChars, int heightChars);
+    void drawPlayerSelectionScreen(int& selection);
+    void drawPlayerMessage(int playerIndex, const std::string& message);
 
-    // offsetX_와 offsetY_를 위한 public getter 함수 추가
-    int getOffsetX() const { return offsetX_; }
-    int getOffsetY() const { return offsetY_; }
+    int getPlayerBoardOffsetX(int playerIndex) const;
+    int getPlayerBoardOffsetY(int playerIndex) const;
+    int getPlayerNextAreaBaseX(int playerIndex) const;
+    int getPlayerNextAreaBaseY(int playerIndex) const;
+    int getPlayerStatsAreaBaseX(int playerIndex) const;
+    int getPlayerStatsAreaBaseY(int playerIndex) const;
 
 private:
-    int offsetX_, offsetY_;
+    static constexpr int P1_BOARD_OFFSET_X = 2;
+    static constexpr int P1_BOARD_OFFSET_Y = 1;
+    static constexpr int P1_NEXT_X_REL = Board::COLS * 2 + 3;
+    static constexpr int P1_NEXT_Y_ABS = 1;
+    static constexpr int P1_STATS_X_REL = Board::COLS * 2 + 3;
+    static constexpr int P1_STATS_Y_ABS = 7;
 
-    static constexpr int NEXT_BLOCK_AREA_X = 33;
-    static constexpr int NEXT_BLOCK_AREA_Y = 1;
+    static constexpr int P2_BOARD_OFFSET_X = P1_BOARD_OFFSET_X + P1_NEXT_X_REL + 12 + 10;
+    static constexpr int P2_BOARD_OFFSET_Y = 1;
+    static constexpr int P2_NEXT_X_REL = Board::COLS * 2 + 3;
+    static constexpr int P2_NEXT_Y_ABS = 1;
+    static constexpr int P2_STATS_X_REL = Board::COLS * 2 + 3;
+    static constexpr int P2_STATS_Y_ABS = 7;
+
     static constexpr int NEXT_BLOCK_BOX_WIDTH = 6;
     static constexpr int NEXT_BLOCK_BOX_HEIGHT = 6;
 
-    static constexpr int STATS_AREA_X = 35; // Renderer 내부에서 offsetX_를 더해서 사용할 수 있음
-    static constexpr int STATS_LABEL_Y_LEVEL = 7;
-    static constexpr int STATS_VALUE_Y_LEVEL = 7;
-    static constexpr int STATS_LABEL_X_LEVEL = 0; // STATS_AREA_X 기준 상대 X
-    static constexpr int STATS_VALUE_X_LEVEL = 6; // STATS_AREA_X 기준 상대 X
-
-    static constexpr int STATS_LABEL_Y_SCORE = 9;
-    static constexpr int STATS_VALUE_Y_SCORE = 10;
-    static constexpr int STATS_LABEL_X_SCORE = 0;
-    static constexpr int STATS_VALUE_X_SCORE = 0;
-
-    static constexpr int STATS_LABEL_Y_LINES = 12;
-    static constexpr int STATS_VALUE_Y_LINES = 13;
-    static constexpr int STATS_LABEL_X_LINES = 0;
-    static constexpr int STATS_VALUE_X_LINES = 0;
-
-    bool statsLabelsPrinted_ = false;
+    static constexpr int STATS_LABEL_X_LEVEL = 0;
+    static constexpr int STATS_VALUE_X_LEVEL = 6;
+    static constexpr int STATS_Y_OFFSET_SCORE = 2;
+    static constexpr int STATS_Y_OFFSET_LINES = 4;
 };

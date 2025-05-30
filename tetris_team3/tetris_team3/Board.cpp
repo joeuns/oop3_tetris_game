@@ -10,14 +10,13 @@ void Board::init() {
     for (int i = 0; i < ROWS; ++i) {
         for (int j = 0; j < COLS; ++j) {
             if (j == 0 || j == COLS - 1 || i == ROWS - 1)
-                grid_[i][j] = WALL_CELL;  // 벽 또는 바닥
+                grid_[i][j] = WALL_CELL;
             else
                 grid_[i][j] = EMPTY_CELL;
         }
     }
 }
 
-// 블록이 보드에 충돌하는지 검사
 bool Board::strikeCheck(int shape, int angle, int x, int y) const {
     for (int r = 0; r < 4; ++r) {
         for (int c = 0; c < 4; ++c) {
@@ -36,7 +35,6 @@ bool Board::strikeCheck(int shape, int angle, int x, int y) const {
     return false;
 }
 
-// 블록을 보드에 병합
 bool Board::mergeBlock(int shape, int angle, int x, int y) {
     bool canMerge = true;
     for (int r = 0; r < 4; ++r) {
@@ -59,7 +57,6 @@ bool Board::mergeBlock(int shape, int angle, int x, int y) {
     return canMerge;
 }
 
-// 가득 찬 줄을 제거하고 위를 내림
 int Board::clearFullLines() {
     int clearedLines = 0;
     for (int i = ROWS - 2; i >= 0; --i) {
@@ -80,7 +77,7 @@ int Board::clearFullLines() {
             for (int j = 1; j < COLS - 1; ++j)
                 grid_[0][j] = EMPTY_CELL;
 
-            ++i; // 같은 줄 재검사
+            ++i;
         }
     }
     return clearedLines;

@@ -1,267 +1,521 @@
-﻿#include "Game.h"
+﻿#define NOMINMAX
+
+#include "Game.h"
 #include "Color.h"
-#include <conio.h> 
+#include <conio.h>
 #include <Windows.h>
 #include <iostream>
-#include <string>   
+#include <string>
 #include <algorithm>
-#include <limits>
-
-#define EXT_KEY         0xE0
-#define KEY_LEFT        0x4B
-#define KEY_RIGHT       0x4D
-#define KEY_UP          0x48
-#define KEY_DOWN        0x50
-#define KEY_SPACE       0x20
-#define KEY_ESC         0x1B
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
 
 TetrisGame::TetrisGame()
-    : currentBlock_(nullptr), nextBlock_(nullptr),
-    level_(0), score_(0), lines_(0),
-    renderer_(2, 1), // 게임 보드 좌상단 콘솔 오프셋 (X=2, Y=1)
-    isGameOver_(false) {
+    : gameMode_(GameMode::ONE_PLAYER), startLevel_(0), currentStage_(0) {
+    for (int i = 0; i < 2; ++i) {
+        currentBlock_[i] = nullptr;
+        nextBlock_[i] = nullptr;
+        isGameOver_[i] = true;
+        level_[i] = 0;
+        score_[i] = 0;
+        lines_[i] = 0;
+        totalLinesCleared_[i] = 0;
+        stageWins_[i] = 0;
+        gameWon_[i] = false;
+    }
 }
 
 TetrisGame::~TetrisGame() {
-    delete currentBlock_;
-    delete nextBlock_;
-    currentBlock_ = nullptr;
-    nextBlock_ = nullptr;
+    for (int i = 0; i < 2; ++i) {
+        delete currentBlock_[i];
+        delete nextBlock_[i];
+    }
 }
 
-void TetrisGame::init() {
+int TetrisGame::getRandomShapeIndex(int playerIndex) {
+    int shapeIdx;
+    int currentLevelForStage = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1);
+    if (currentLevelForStage < 0) currentLevelForStage = 0;
+
+    if (rand() % 100 < stages_[currentLevelForStage].stickRate) {
+        shapeIdx = I_BLOCK_4_INDEX;
+    }
+    else {
+        std::vector<int> otherShapeIndices;
+        for (int i = 0; i < TOTAL_SHAPES; ++i) {
+            if (i == I_BLOCK_4_INDEX) continue;
+            otherShapeIndices.push_back(i);
+        }
+        if (otherShapeIndices.empty()) {
+            shapeIdx = I_BLOCK_4_INDEX;
+        }
+        else {
+            shapeIdx = otherShapeIndices[rand() % otherShapeIndices.size()];
+        }
+    }
+    return shapeIdx;
+}
+
+void TetrisGame::initCommon() {
     srand(static_cast<unsigned>(time(nullptr)));
-
-    renderer_.initConsole();
-    renderer_.hideCursor();
-
-    setupStages();
-    inputData(); // 레벨 선택
-
-    renderer_.initConsole(); // 레벨 선택 후 다시 화면 정리
-    board_.init();
-
-    renderer_.drawBoard(board_);
-    // 통계 표시는 renderer_의 offsetX_를 기준으로 계산된 절대 위치에 그림
-    renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
-
-
-    if (!spawnBlock()) {
-        isGameOver_ = true;
-    }
-    if (!isGameOver_ && nextBlock_) {
-        renderer_.drawNextBlockArea(*nextBlock_);
-    }
-}
-
-void TetrisGame::setupStages() {
     stages_ = {
-        {40, 20, 2}, {35, 20, 2}, {30, 20, 15}, {25, 17, 20}, {20, 16, 25},
-        {15, 14, 30}, {10, 14, 35}, {8, 13, 40},  {6, 12, 45}, {4, 11, 50}
+        {25, 15, 5},
+        {20, 20, 7},
+        {15, 25, 10}
     };
+    startLevel_ = 0;
 }
 
-void TetrisGame::inputData() {
-    int input = 0;
-    renderer_.setColor(GRAY);
-    do {
-        // 보드 오른쪽 영역에 레벨 선택 프롬프트 표시
-        // renderer_.getOffsetX()와 Board::COLS (셀 단위)를 사용하여 X 좌표 계산
-        // Board::COLS * 2는 보드의 문자 너비
-        int promptX = renderer_.getOffsetX() + Board::COLS * 2 + 3; // 보드 옆 약간의 간격
-        int promptY = renderer_.getOffsetY() + 5; // 보드 상단에서 약간 아래
+void TetrisGame::selectGameMode() {
+    int selection = 1;
+    system("mode con: cols=80 lines=25");
+    system("cls");
+    renderer_.hideCursor();
+    renderer_.drawPlayerSelectionScreen(selection);
+    gameMode_ = (selection == 1) ? GameMode::ONE_PLAYER : GameMode::TWO_PLAYER;
+}
 
-        renderer_.gotoXY(promptX, promptY);
-        std::cout << "Select Start level [1-" << stages_.size() << "]: ";
-        std::cin >> input;
+void TetrisGame::initPlayer(int playerIndex) {
+    isGameOver_[playerIndex] = false;
+    gameWon_[playerIndex] = false;
+    level_[playerIndex] = startLevel_;
+    score_[playerIndex] = 0;
+    lines_[playerIndex] = 0;
+    totalLinesCleared_[playerIndex] = 0;
 
+    delete currentBlock_[playerIndex]; currentBlock_[playerIndex] = nullptr;
+    delete nextBlock_[playerIndex];    nextBlock_[playerIndex] = nullptr;
 
-        if (std::cin.fail()) {
-            std::cin.clear();
-            std::cin.ignore(99999, '\n');
-            input = 0;
-            renderer_.gotoXY(promptX, promptY + 1);
-            std::cout << "Invalid input. Please enter a number.";
-            Sleep(1000);
-            renderer_.initConsole();
-            renderer_.gotoXY(promptX, promptY + 1);
-            std::cout << "                                     ";
-        }
-        else if (input < 1 || input > static_cast<int>(stages_.size())) {
-            renderer_.gotoXY(promptX, promptY + 1);
-            std::cout << "Level out of range. Try again.   "; // 이전 메시지 덮도록 충분한 공백
-            Sleep(1000);
-            renderer_.gotoXY(promptX, promptY + 1);
-            std::cout << "                                     ";
-            input = 0;
-        }
+    board_[playerIndex].init();
+    renderer_.drawBoard(board_[playerIndex], playerIndex);
 
-    } while (input < 1 || input > static_cast<int>(stages_.size()));
+    nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
 
-    level_ = input - 1;
+    if (!spawnBlock(playerIndex)) {
+        isGameOver_[playerIndex] = true;
+    }
+    int currentLevelForStage = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1);
+    if (currentLevelForStage < 0) currentLevelForStage = 0;
+
+    renderer_.drawStats(level_[playerIndex], score_[playerIndex],
+        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex);
+}
+
+void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
+    isGameOver_[playerIndex] = false;
+    gameWon_[playerIndex] = false;
+    level_[playerIndex] = stageIdx;
+    lines_[playerIndex] = 0;
+
+    board_[playerIndex].init();
+    renderer_.drawBoard(board_[playerIndex], playerIndex);
+
+    delete currentBlock_[playerIndex]; currentBlock_[playerIndex] = nullptr;
+    delete nextBlock_[playerIndex];    nextBlock_[playerIndex] = nullptr;
+
+    nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
+
+    if (!spawnBlock(playerIndex)) {
+        isGameOver_[playerIndex] = true;
+    }
+
+    int currentLevelForStage = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1);
+    if (currentLevelForStage < 0) currentLevelForStage = 0;
+
+    renderer_.drawStats(level_[playerIndex], score_[playerIndex],
+        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex);
 }
 
 void TetrisGame::run() {
-    int tick = 0;
-
     renderer_.drawLogo();
+    selectGameMode();
+    initCommon();
 
-    while (true) {
-        init();
-        isGameOver_ = 0;
-        while (!isGameOver_) {
+    renderer_.initConsole(gameMode_ == GameMode::TWO_PLAYER);
+
+    if (gameMode_ == GameMode::ONE_PLAYER) {
+        initPlayer(0);
+        renderer_.gotoXY(renderer_.getPlayerBoardOffsetX(0) + Board::COLS - 5, renderer_.getPlayerBoardOffsetY(0) - 1);
+        renderer_.setColor(YELLOW);
+        std::cout << "Stage " << level_[0] + 1;
+        Sleep(1500);
+        renderer_.gotoXY(renderer_.getPlayerBoardOffsetX(0) + Board::COLS - 5, renderer_.getPlayerBoardOffsetY(0) - 1);
+        std::cout << "          ";
+
+        int tick = 0;
+        while (!isGameOver_[0] && !gameWon_[0]) {
             if (_kbhit()) {
                 processInput();
-                if (isGameOver_) {
-                    renderer_.initConsole();
-                    renderer_.drawGameOver();
-                    continue;
-                }
             }
+            if (isGameOver_[0] || gameWon_[0]) break;
 
-            int currentSpeed = stages_[min(level_, static_cast<int>(stages_.size()) - 1)].speed;
-            if (tick % currentSpeed == 0) {
-                update();
-                if (isGameOver_) {
-                    renderer_.initConsole();
-                    renderer_.drawGameOver();
-                    continue;
-                }
+            int currentLevelForSpeed = std::min(level_[0], static_cast<int>(stages_.size()) - 1);
+            if (currentLevelForSpeed < 0) currentLevelForSpeed = 0;
+            int currentSpeedP0 = stages_[currentLevelForSpeed].speed;
+
+            if (tick % currentSpeedP0 == 0) {
+                if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
+                updatePlayer(0);
             }
-
-            int clearLineForLevelUp = stages_[min(level_, static_cast<int>(stages_.size()) - 1)].clearLine;
-            if (lines_ >= clearLineForLevelUp && level_ < static_cast<int>(stages_.size()) - 1) {
-                level_++;
-                lines_ = 0;
-                renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
-            }
-
             Sleep(15);
             tick++;
         }
     }
-}
+    else {
+        stageWins_[0] = 0;
+        stageWins_[1] = 0;
+        score_[0] = 0;
+        score_[1] = 0;
 
-bool TetrisGame::spawnBlock() {
-    delete currentBlock_;
+        for (currentStage_ = 0; currentStage_ < stages_.size(); ++currentStage_) {
+            system("cls");
+            renderer_.initConsole(true);
+            renderer_.hideCursor();
 
-    // currentBlock_ 설정
-    if (nextBlock_ == nullptr) {
-        int shape = (rand() % 100 < stages_[level_].stickRate) ? 0 : (rand() % 6 + 1);
-        currentBlock_ = new Block(shape);
-        currentBlock_->reset(shape, Board::COLS / 2 - 2, 0);
+            std::string stageMsg = "STAGE " + std::to_string(currentStage_ + 1) + " START!";
+            renderer_.gotoXY(60 - stageMsg.length() / 2, 5);
+            renderer_.setColor(YELLOW);
+            std::cout << stageMsg;
+            Sleep(2000);
+            renderer_.gotoXY(60 - stageMsg.length() / 2, 5);
+            for (size_t i = 0; i < stageMsg.length(); ++i) std::cout << " ";
+
+            initPlayerForStage(0, currentStage_);
+            initPlayerForStage(1, currentStage_);
+
+            int currentLvlP0ForStats = std::min(level_[0], static_cast<int>(stages_.size()) - 1); if (currentLvlP0ForStats < 0) currentLvlP0ForStats = 0;
+            int currentLvlP1ForStats = std::min(level_[1], static_cast<int>(stages_.size()) - 1); if (currentLvlP1ForStats < 0) currentLvlP1ForStats = 0;
+
+            renderer_.drawStats(level_[0], score_[0], stages_[currentLvlP0ForStats].clearLine - lines_[0], 0);
+            renderer_.drawStats(level_[1], score_[1], stages_[currentLvlP1ForStats].clearLine - lines_[1], 1);
+
+            int tick = 0;
+            while (!isGameOver_[0] || !isGameOver_[1]) {
+                if (_kbhit()) {
+                    processInput();
+                }
+
+                int currentLvlP0ForSpeed = std::min(level_[0], static_cast<int>(stages_.size()) - 1); if (currentLvlP0ForSpeed < 0) currentLvlP0ForSpeed = 0;
+                int currentLvlP1ForSpeed = std::min(level_[1], static_cast<int>(stages_.size()) - 1); if (currentLvlP1ForSpeed < 0) currentLvlP1ForSpeed = 0;
+
+                if (!isGameOver_[0]) {
+                    int currentSpeedP0 = stages_[currentLvlP0ForSpeed].speed;
+                    if (tick % currentSpeedP0 == 0) {
+                        if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
+                        updatePlayer(0);
+                    }
+                }
+
+                if (!isGameOver_[1]) {
+                    int currentSpeedP1 = stages_[currentLvlP1ForSpeed].speed;
+                    if (tick % currentSpeedP1 == 0) {
+                        if (currentBlock_[1]) renderer_.eraseBlock(*currentBlock_[1], 1);
+                        updatePlayer(1);
+                    }
+                }
+
+                Sleep(15);
+                tick++;
+
+                if (isGameOver_[0] && isGameOver_[1]) break;
+            }
+
+            if (isGameOver_[0] && !isGameOver_[1]) {
+                stageWins_[1]++;
+            }
+            else if (!isGameOver_[0] && isGameOver_[1]) {
+                stageWins_[0]++;
+            }
+            else {
+                if (score_[0] > score_[1]) {
+                    stageWins_[0]++;
+                }
+                else if (score_[1] > score_[0]) {
+                    stageWins_[1]++;
+                }
+            }
+
+            system("cls");
+            renderer_.hideCursor();
+            std::string stageResultMsg = "Stage " + std::to_string(currentStage_ + 1) + " Ended!";
+            renderer_.gotoXY(60 - stageResultMsg.length() / 2, 8); renderer_.setColor(WHITE); std::cout << stageResultMsg;
+
+            renderer_.gotoXY(45, 11); std::cout << "Player 1 Score: " << std::setw(7) << score_[0];
+            renderer_.gotoXY(45, 12); std::cout << "Player 2 Score: " << std::setw(7) << score_[1];
+
+            renderer_.gotoXY(45, 14); renderer_.setColor(YELLOW);
+            if (isGameOver_[0] && !isGameOver_[1]) std::cout << "Player 2 wins Stage " << currentStage_ + 1 << "!";
+            else if (!isGameOver_[0] && isGameOver_[1]) std::cout << "Player 1 wins Stage " << currentStage_ + 1 << "!";
+            else {
+                if (score_[0] > score_[1]) std::cout << "Player 1 wins Stage " << currentStage_ + 1 << " (Score)!";
+                else if (score_[1] > score_[0])  std::cout << "Player 2 wins Stage " << currentStage_ + 1 << " (Score)!";
+                else std::cout << "Stage " << currentStage_ + 1 << " is a Draw!";
+            }
+
+            renderer_.gotoXY(45, 16); renderer_.setColor(GRAY);
+            std::cout << "Total Stage Wins -> P1: " << stageWins_[0] << " | P2: " << stageWins_[1];
+            renderer_.gotoXY(45, 18); std::cout << "Press any key to continue...";
+            _getch();
+        }
+    }
+
+    system("cls");
+    renderer_.hideCursor();
+    int centerX = (gameMode_ == GameMode::ONE_PLAYER) ? 40 : 60;
+
+    if (gameMode_ == GameMode::ONE_PLAYER) {
+        if (gameWon_[0]) {
+            renderer_.setColor(GREEN);
+            std::string msg1 = "CONGRATULATIONS!";
+            std::string msg2 = "ALL STAGES CLEARED!";
+            std::string msg3 = "Final Score: " + std::to_string(score_[0]);
+            renderer_.gotoXY(centerX - msg1.length() / 2, 10); std::cout << msg1;
+            renderer_.gotoXY(centerX - msg2.length() / 2, 12); std::cout << msg2;
+            renderer_.gotoXY(centerX - msg3.length() / 2, 14); std::cout << msg3;
+        }
+        else {
+            renderer_.setColor(RED);
+            std::string msg1 = "G A M E  O V E R";
+            std::string msg2 = "Score: " + std::to_string(score_[0]);
+            std::string msg3 = "Stage: " + std::to_string(level_[0] + 1);
+            renderer_.gotoXY(centerX - msg1.length() / 2, 10); std::cout << msg1;
+            renderer_.gotoXY(centerX - msg2.length() / 2, 12); std::cout << msg2;
+            renderer_.gotoXY(centerX - msg3.length() / 2, 13); std::cout << msg3;
+        }
     }
     else {
-        currentBlock_ = nextBlock_;
-        currentBlock_->reset(currentBlock_->getShape(), Board::COLS / 2 - 2, 0);
+        renderer_.gotoXY(centerX - 10, 8); renderer_.setColor(WHITE);
+        std::cout << "--- GAME FINISHED ---";
+
+        renderer_.gotoXY(centerX - 20, 10);
+        std::cout << "Player 1 Total Score: " << std::setw(7) << score_[0] << "  |  Stages Won: " << stageWins_[0];
+        renderer_.gotoXY(centerX - 20, 12);
+        std::cout << "Player 2 Total Score: " << std::setw(7) << score_[1] << "  |  Stages Won: " << stageWins_[1];
+
+        renderer_.gotoXY(centerX - 15, 15); renderer_.setColor(YELLOW);
+        if (stageWins_[0] > stageWins_[1]) {
+            std::cout << "PLAYER 1 IS THE OVERALL WINNER!";
+        }
+        else if (stageWins_[1] > stageWins_[0]) {
+            std::cout << "PLAYER 2 IS THE OVERALL WINNER!";
+        }
+        else {
+            if (score_[0] > score_[1]) {
+                std::cout << "PLAYER 1 WINS ON SCORE TIE-BREAK!";
+            }
+            else if (score_[1] > score_[0]) {
+                std::cout << "PLAYER 2 WINS ON SCORE TIE-BREAK!";
+            }
+            else {
+                renderer_.setColor(GRAY); std::cout << "OVERALL GAME IS A DRAW!";
+            }
+        }
     }
 
-    // nextBlock_ 설정
-    int nextShape = (rand() % 100 < stages_[level_].stickRate) ? 0 : (rand() % 6 + 1);
-    nextBlock_ = new Block(nextShape);
-    // 위치는 필요 없고 모양만 전달 → reset 생략 가능
+    renderer_.setColor(GRAY);
+    std::string continueMsg = "Press any key to continue...";
+    renderer_.gotoXY(centerX - continueMsg.length() / 2, 20);
+    std::cout << continueMsg;
 
-    if (board_.strikeCheck(currentBlock_->getShape(), currentBlock_->getAngle(), currentBlock_->getX(), currentBlock_->getY())) {
-        // 게임 오버 상황에서는 currentBlock_을 그리지 않거나, 마지막 충돌 모습으로 그림
-        // renderer_.drawBlock(*currentBlock_); // 옵션: 충돌하는 블록 표시
+    while (!_kbhit()) { Sleep(100); }
+    _getche();
+    system("cls");
+}
+
+bool TetrisGame::spawnBlock(int playerIndex) {
+    delete currentBlock_[playerIndex];
+    currentBlock_[playerIndex] = nextBlock_[playerIndex];
+
+    if (currentBlock_[playerIndex] == nullptr) {
+        currentBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
+    }
+    currentBlock_[playerIndex]->reset(currentBlock_[playerIndex]->getShape(), Board::COLS / 2 - 2, 0);
+
+    nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
+
+    if (board_[playerIndex].strikeCheck(currentBlock_[playerIndex]->getShape(), currentBlock_[playerIndex]->getAngle(),
+        currentBlock_[playerIndex]->getX(), currentBlock_[playerIndex]->getY())) {
+        if (currentBlock_[playerIndex]) renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+        delete nextBlock_[playerIndex];
+        nextBlock_[playerIndex] = nullptr;
+        renderer_.drawPlayerMessage(playerIndex, "GAME OVER");
         return false;
     }
 
-    if (currentBlock_) renderer_.drawBlock(*currentBlock_);
-    if (nextBlock_) renderer_.drawNextBlockArea(*nextBlock_);
-
+    if (currentBlock_[playerIndex]) renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+    if (nextBlock_[playerIndex]) renderer_.drawNextBlockArea(*nextBlock_[playerIndex], playerIndex);
     return true;
 }
 
 void TetrisGame::processInput() {
-    if (!currentBlock_ || isGameOver_) return;
+    int ch = _getch();
+    PlayerAction p1Action = PlayerAction::NONE;
+    PlayerAction p2Action = PlayerAction::NONE;
 
-    int key = _getche();
+    if (ch == KeyCodes::EXT_KEY || ch == 0) {
+        ch = _getch();
+        if (!isGameOver_[0] && !gameWon_[0]) {
+            if (ch == KeyCodes::P1_KEY_LEFT_ARROW) p1Action = PlayerAction::MOVE_LEFT;
+            else if (ch == KeyCodes::P1_KEY_RIGHT_ARROW) p1Action = PlayerAction::MOVE_RIGHT;
+            else if (ch == KeyCodes::P1_KEY_UP_ARROW) p1Action = PlayerAction::ROTATE;
+            else if (ch == KeyCodes::P1_KEY_DOWN_ARROW) p1Action = PlayerAction::SOFT_DROP;
+        }
+    }
+    else {
+        if (!isGameOver_[0] && !gameWon_[0]) {
+            if (ch == KeyCodes::P1_KEY_SPACE) p1Action = PlayerAction::HARD_DROP;
+        }
+        if (gameMode_ == GameMode::TWO_PLAYER && !isGameOver_[1] && !gameWon_[1]) {
+            char char_ch = static_cast<char>(std::tolower(ch));
+            if (char_ch == KeyCodes::P2_KEY_LEFT) p2Action = PlayerAction::MOVE_LEFT;
+            else if (char_ch == KeyCodes::P2_KEY_RIGHT) p2Action = PlayerAction::MOVE_RIGHT;
+            else if (char_ch == KeyCodes::P2_KEY_UP) p2Action = PlayerAction::ROTATE;
+            else if (char_ch == KeyCodes::P2_KEY_DOWN) p2Action = PlayerAction::SOFT_DROP;
+            else if (char_ch == KeyCodes::P2_KEY_TAB) p2Action = PlayerAction::HARD_DROP;
+        }
 
-    if (key == EXT_KEY || key == 0) {
-        key = _getche();
+        if (ch == KeyCodes::KEY_ESC) {
+            isGameOver_[0] = true; gameWon_[0] = false;
+            if (gameMode_ == GameMode::TWO_PLAYER) { isGameOver_[1] = true; gameWon_[1] = false; }
+            return;
+        }
     }
 
-    renderer_.eraseBlock(*currentBlock_);
-
-    switch (key) {
-    case KEY_LEFT:
-        currentBlock_->move(-1, 0, board_);
-        break;
-    case KEY_RIGHT:
-        currentBlock_->move(1, 0, board_);
-        break;
-    case KEY_UP:
-        currentBlock_->rotate(board_);
-        break;
-    case KEY_DOWN:
-        if (!currentBlock_->move(0, 1, board_)) {
-            update();
-        }
-        else {
-            renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
-        }
-        break;
-    case KEY_SPACE:
-        while (currentBlock_->move(0, 1, board_)) {
-        }
-        renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
-        update();
-        break;
-    case KEY_ESC:
-        isGameOver_ = true;
-        break;
+    if (p1Action != PlayerAction::NONE) {
+        if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
+        handlePlayerAction(0, p1Action);
     }
-
-    if (!isGameOver_ && currentBlock_) {
-        renderer_.drawBlock(*currentBlock_);
+    if (gameMode_ == GameMode::TWO_PLAYER && p2Action != PlayerAction::NONE) {
+        if (currentBlock_[1]) renderer_.eraseBlock(*currentBlock_[1], 1);
+        handlePlayerAction(1, p2Action);
     }
 }
 
-void TetrisGame::update() {
-    if (!currentBlock_ || isGameOver_) return;
+void TetrisGame::handlePlayerAction(int playerIndex, PlayerAction action) {
+    if (!currentBlock_[playerIndex] || isGameOver_[playerIndex] || gameWon_[playerIndex]) return;
 
-    renderer_.eraseBlock(*currentBlock_);
+    bool shouldRedrawBlock = true;
 
-    if (!currentBlock_->move(0, 1, board_)) {
-        bool mergedSuccessfully = board_.mergeBlock(currentBlock_->getShape(), currentBlock_->getAngle(), currentBlock_->getX(), currentBlock_->getY());
+    switch (action) {
+    case PlayerAction::MOVE_LEFT:  currentBlock_[playerIndex]->move(-1, 0, board_[playerIndex]); break;
+    case PlayerAction::MOVE_RIGHT: currentBlock_[playerIndex]->move(1, 0, board_[playerIndex]);  break;
+    case PlayerAction::ROTATE:     currentBlock_[playerIndex]->rotate(board_[playerIndex]);      break;
+    case PlayerAction::SOFT_DROP:
+        if (!currentBlock_[playerIndex]->move(0, 1, board_[playerIndex])) {
+            updatePlayer(playerIndex);
+            shouldRedrawBlock = false;
+        }
+        break;
+    case PlayerAction::HARD_DROP:
+        while (currentBlock_[playerIndex]->move(0, 1, board_[playerIndex])) {}
+        updatePlayer(playerIndex);
+        shouldRedrawBlock = false;
+        break;
+    case PlayerAction::NONE:
+        shouldRedrawBlock = false;
+        break;
+    }
 
-        // Y 좌표가 음수인 상태에서 병합 실패 또는 병합 자체가 실패하면 게임오버
-        if (!mergedSuccessfully || (currentBlock_ != nullptr && currentBlock_->getY() < 0)) {
-            isGameOver_ = true;
-            if (currentBlock_) renderer_.drawBlock(*currentBlock_); // 마지막 모습 그림 (선택)
-            delete currentBlock_; currentBlock_ = nullptr;
-            delete nextBlock_; nextBlock_ = nullptr;
+    if (shouldRedrawBlock && !isGameOver_[playerIndex] && !gameWon_[playerIndex] && currentBlock_[playerIndex]) {
+        renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+    }
+}
+
+void TetrisGame::updatePlayer(int playerIndex) {
+    if (!currentBlock_[playerIndex] || isGameOver_[playerIndex] || gameWon_[playerIndex]) return;
+
+    if (!currentBlock_[playerIndex]->move(0, 1, board_[playerIndex])) {
+        bool mergedSuccessfully = board_[playerIndex].mergeBlock(
+            currentBlock_[playerIndex]->getShape(), currentBlock_[playerIndex]->getAngle(),
+            currentBlock_[playerIndex]->getX(), currentBlock_[playerIndex]->getY());
+
+        if (!mergedSuccessfully || currentBlock_[playerIndex]->getY() < 0) {
+            isGameOver_[playerIndex] = true;
+            if (currentBlock_[playerIndex]) renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+            renderer_.drawPlayerMessage(playerIndex, "GAME OVER!");
             return;
         }
+        renderer_.drawBoard(board_[playerIndex], playerIndex);
 
-        renderer_.drawBoard(board_); // 병합 후 보드 다시 그림
-
-        int cleared = board_.clearFullLines();
+        int cleared = board_[playerIndex].clearFullLines();
         if (cleared > 0) {
-            lines_ += cleared;
+            lines_[playerIndex] += cleared;
+            totalLinesCleared_[playerIndex] += cleared;
+            int currentLevelForScore = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1); if (currentLevelForScore < 0) currentLevelForScore = 0;
+            int scoreMultiplier = (currentLevelForScore + 1);
             switch (cleared) {
-            case 1: score_ += 40 * (level_ + 1); break;
-            case 2: score_ += 100 * (level_ + 1); break;
-            case 3: score_ += 300 * (level_ + 1); break;
-            case 4: score_ += 1200 * (level_ + 1); break;
+            case 1: score_[playerIndex] += 40 * scoreMultiplier; break;
+            case 2: score_[playerIndex] += 100 * scoreMultiplier; break;
+            case 3: score_[playerIndex] += 300 * scoreMultiplier; break;
+            case 4: score_[playerIndex] += 1200 * scoreMultiplier; break;
+            default: score_[playerIndex] += (1200 + (cleared - 4) * 300) * scoreMultiplier; break;
             }
-            renderer_.drawBoard(board_); // 라인 클리어 후 보드 다시 그리기
-            renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
+            renderer_.drawBoard(board_[playerIndex], playerIndex);
         }
-        else {
-            renderer_.drawStats(level_, score_, stages_[level_].clearLine - lines_);
-        }
+        checkLevelUp(playerIndex);
 
-        if (!spawnBlock()) {
-            isGameOver_ = true;
-            delete currentBlock_; currentBlock_ = nullptr; // 안전하게 처리
-            delete nextBlock_; nextBlock_ = nullptr;
+        if (isGameOver_[playerIndex] || gameWon_[playerIndex]) {
             return;
         }
-
+        if (!spawnBlock(playerIndex)) {
+            isGameOver_[playerIndex] = true;
+        }
     }
     else {
-        if (currentBlock_) renderer_.drawBlock(*currentBlock_);
+        if (currentBlock_[playerIndex]) {
+            renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+        }
+    }
+
+    if (!isGameOver_[playerIndex] && !gameWon_[playerIndex]) {
+        int currentLevelForStats = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1); if (currentLevelForStats < 0) currentLevelForStats = 0;
+        int linesNeeded = stages_[currentLevelForStats].clearLine;
+        int linesRemaining = std::max(0, linesNeeded - lines_[playerIndex]);
+        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex);
+    }
+}
+
+void TetrisGame::checkLevelUp(int playerIndex) {
+    if (isGameOver_[playerIndex] || gameWon_[playerIndex]) return;
+
+    int currentStageIdx = level_[playerIndex];
+    if (currentStageIdx < 0 || currentStageIdx >= static_cast<int>(stages_.size())) return;
+
+    int linesNeededForStageClear = stages_[currentStageIdx].clearLine;
+
+    if (lines_[playerIndex] >= linesNeededForStageClear) {
+        if (gameMode_ == GameMode::ONE_PLAYER) {
+            level_[playerIndex]++;
+            lines_[playerIndex] = 0;
+
+            if (level_[playerIndex] < static_cast<int>(stages_.size())) {
+                board_[playerIndex].init();
+                renderer_.drawBoard(board_[playerIndex], playerIndex);
+
+                std::string stageClearMsg = "Stage " + std::to_string(currentStageIdx + 1) + " Cleared!";
+                std::string nextStageMsg = "Stage " + std::to_string(level_[playerIndex] + 1) + " Start!";
+                int msgX = renderer_.getPlayerBoardOffsetX(playerIndex) + Board::COLS - (stageClearMsg.length() / 2);
+                int msgY = renderer_.getPlayerBoardOffsetY(playerIndex) + Board::ROWS / 2 - 1;
+
+                renderer_.gotoXY(msgX, msgY); renderer_.setColor(GREEN); std::cout << stageClearMsg;
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 1); renderer_.setColor(YELLOW); std::cout << nextStageMsg;
+                Sleep(2500);
+
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY);     std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 1); std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
+            }
+            else {
+                gameWon_[playerIndex] = true;
+                isGameOver_[playerIndex] = true;
+            }
+        }
+    }
+    if (!isGameOver_[playerIndex] && !gameWon_[playerIndex]) {
+        int currentLevelForDisplay = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1); if (currentLevelForDisplay < 0) currentLevelForDisplay = 0;
+        int linesNeeded = stages_[currentLevelForDisplay].clearLine;
+        int linesRemaining = std::max(0, linesNeeded - lines_[playerIndex]);
+        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex);
     }
 }
