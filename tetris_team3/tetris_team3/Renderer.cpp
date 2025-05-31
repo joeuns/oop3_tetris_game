@@ -228,6 +228,9 @@ void Renderer::drawNextBlockArea(const Block& nextBlock, int playerIndex) {
     else if (currentShape == 0) {
         drawBlock(nextBlock, playerIndex, blockRenderScreenX, blockRenderScreenY + 1);
     }
+    else if (currentShape == 19) {
+        drawBlock(nextBlock, playerIndex, blockRenderScreenX - 1, blockRenderScreenY - 1);
+    }
     else {
         drawBlock(nextBlock, playerIndex, blockRenderScreenX - 1, blockRenderScreenY);
     }
@@ -332,7 +335,7 @@ void Renderer::drawPlayerSelectionScreen(int& selection) {
     std::string choice2 = "2 PLAYERS";
 
     int titleX = (80 - title.length()) / 2;
-    int choiceX = titleX;
+    int choiceX = titleX + 1;
 
     while (true) {
         gotoXY(titleX, 10); setColor(WHITE); std::cout << title;
@@ -374,4 +377,93 @@ void Renderer::drawPlayerMessage(int playerIndex, const std::string& message) {
     setColor(YELLOW);
     std::cout << message;
     setColor(BLACK);
+}
+
+void Renderer::drawOptionSelectionScreen(int& selection) {
+    hideCursor();
+    do {
+        system("cls");
+        int currentSelection = 1;
+        const int numChoices = 3;
+        int inputKey;
+
+        std::string title = "SELECT OPTION";
+        std::string choice1 = "STORY";
+        std::string choice2 = "HOW TO PLAY";
+        std::string choice3 = "SELECT GAME MODE";
+
+        int titleX = (80 - title.length()) / 2 - 1;
+        int choiceX1 = (80 - choice1.length()) / 2 - 4;
+        int choiceX2 = (80 - choice2.length()) / 2 - 4;
+        int choiceX3 = (80 - choice3.length()) / 2 - 4;
+
+        while (true) {
+            gotoXY(titleX, 9); setColor(WHITE); std::cout << title;
+
+            gotoXY(choiceX1, 12);
+            setColor(currentSelection == 1 ? YELLOW : GRAY);
+            std::cout << (currentSelection == 1 ? ">> " : "   ") << choice1 << (currentSelection == 1 ? " <<" : "   ");
+
+            gotoXY(choiceX2, 14);
+            setColor(currentSelection == 2 ? YELLOW : GRAY);
+            std::cout << (currentSelection == 2 ? ">> " : "   ") << choice2 << (currentSelection == 2 ? " <<" : "   ");
+
+            gotoXY(choiceX3, 16);
+            setColor(currentSelection == 3 ? YELLOW : GRAY);
+            std::cout << (currentSelection == 3 ? ">> " : "   ") << choice3 << (currentSelection == 3 ? " <<" : "   ");
+
+            setColor(GRAY);
+
+            inputKey = _getch();
+            if (inputKey == 0xE0 || inputKey == 0) {
+                inputKey = _getch();
+                if (inputKey == 72) {
+                    currentSelection = (currentSelection == 1) ? numChoices : currentSelection - 1;
+                }
+                else if (inputKey == 80) {
+                    currentSelection = (currentSelection == numChoices) ? 1 : currentSelection + 1;
+                }
+            }
+            else if (inputKey == 13) {
+                selection = currentSelection;
+                break;
+            }
+        }
+        switch (selection)
+        {
+        case 1: drawStory(); break;
+        case 2: drawHowToPlay(); break;
+        case 3: break;
+        default: break;
+        }
+    } while (selection != 3);
+    setColor(BLACK);
+}
+
+void Renderer::drawStory() {
+    system("cls");
+    setColor(WHITE);
+    std::string temp = "이곳에 스토리 추가 예정";
+
+    int tempX = (80 - temp.length()) / 2;
+    gotoXY(tempX, 10); std::cout << temp;
+    gotoXY(28, 20); std::cout << "Press Any Key to Exit!";
+    _getch();
+}
+
+void Renderer::drawHowToPlay() {
+    system("cls");
+    setColor(WHITE);
+    gotoXY(10, 3); std::cout << "            Player 1                             Player 2";
+    gotoXY(10, 6); std::cout << "        ← → : 블럭 좌우 이동                 a d : 블럭 좌우 이동";
+    gotoXY(10, 8); std::cout << "          ↑ : 블럭 회전                        w : 블럭 회전";
+    gotoXY(10, 10); std::cout << "          ↓ : 블럭 내리기                      s : 블럭 내리기";
+    gotoXY(10, 12); std::cout << "스페이스 바 : 블럭 바로 내리기            TAB 키 : 블럭 바로 내리기";
+
+    gotoXY(5, 18); std::cout << "                                ※  주의 ※";
+    gotoXY(5, 20); std::cout << "회색 상자는 취급 주의 물품이 들어가 있어, 조심히 다뤄야 하기에 회전이 불가능합니다.";
+    gotoXY(5, 22); std::cout << "      무거운 상자들은 더 빨리 떨어집니다. 크기가 큰 상자들을 조심하세요!";
+    
+    gotoXY(32, 27); std::cout << "Press Any Key to Exit!";
+    _getch();
 }

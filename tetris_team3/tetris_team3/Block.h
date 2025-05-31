@@ -15,6 +15,7 @@ public:
     int getAngle() const;
     int getX() const;
     int getY() const;
+    int getBlockSpeed();
 
     static char getBlockShapeData(int shape, int angle, int row, int col);
     static const char shapes_[21][4][4][4];

@@ -61,9 +61,9 @@ int TetrisGame::getRandomShapeIndex(int playerIndex) {
 void TetrisGame::initCommon() {
     srand(static_cast<unsigned>(time(nullptr)));
     stages_ = {
-        {25, 15, 5},
-        {20, 20, 7},
-        {15, 25, 10}
+        {20, 15, 2},
+        {15, 20, 7},
+        {10, 25, 10}
     };
     startLevel_ = 0;
 }
@@ -130,6 +130,8 @@ void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
 
 void TetrisGame::run() {
     renderer_.drawLogo();
+    int select = 1;
+    renderer_.drawOptionSelectionScreen(select);
     selectGameMode();
     initCommon();
 
@@ -153,8 +155,9 @@ void TetrisGame::run() {
 
             int currentLevelForSpeed = std::min(level_[0], static_cast<int>(stages_.size()) - 1);
             if (currentLevelForSpeed < 0) currentLevelForSpeed = 0;
-            int currentSpeedP0 = stages_[currentLevelForSpeed].speed;
 
+            int currentSpeedP0 = stages_[currentLevelForSpeed].speed + currentBlock_[0]->getBlockSpeed();
+           
             if (tick % currentSpeedP0 == 0) {
                 if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
                 updatePlayer(0);
@@ -201,7 +204,7 @@ void TetrisGame::run() {
                 int currentLvlP1ForSpeed = std::min(level_[1], static_cast<int>(stages_.size()) - 1); if (currentLvlP1ForSpeed < 0) currentLvlP1ForSpeed = 0;
 
                 if (!isGameOver_[0]) {
-                    int currentSpeedP0 = stages_[currentLvlP0ForSpeed].speed;
+                    int currentSpeedP0 = stages_[currentLvlP0ForSpeed].speed + currentBlock_[0]->getBlockSpeed();
                     if (tick % currentSpeedP0 == 0) {
                         if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
                         updatePlayer(0);
@@ -209,7 +212,7 @@ void TetrisGame::run() {
                 }
 
                 if (!isGameOver_[1]) {
-                    int currentSpeedP1 = stages_[currentLvlP1ForSpeed].speed;
+                    int currentSpeedP1 = stages_[currentLvlP1ForSpeed].speed + currentBlock_[1]->getBlockSpeed();
                     if (tick % currentSpeedP1 == 0) {
                         if (currentBlock_[1]) renderer_.eraseBlock(*currentBlock_[1], 1);
                         updatePlayer(1);
@@ -354,7 +357,7 @@ void TetrisGame::processInput() {
     PlayerAction p1Action = PlayerAction::NONE;
     PlayerAction p2Action = PlayerAction::NONE;
 
-    if (ch == KeyCodes::EXT_KEY || ch == 0) {
+    /*if (ch == KeyCodes::EXT_KEY || ch == 0) {
         ch = _getch();
         if (!isGameOver_[0] && !gameWon_[0]) {
             if (ch == KeyCodes::P1_KEY_LEFT_ARROW) p1Action = PlayerAction::MOVE_LEFT;
@@ -362,8 +365,41 @@ void TetrisGame::processInput() {
             else if (ch == KeyCodes::P1_KEY_UP_ARROW) p1Action = PlayerAction::ROTATE;
             else if (ch == KeyCodes::P1_KEY_DOWN_ARROW) p1Action = PlayerAction::SOFT_DROP;
         }
+    }*/
+    if (gameMode_ == GameMode::ONE_PLAYER) {
+        if (!isGameOver_[0] && !gameWon_[0]) {
+            if (ch == KeyCodes::EXT_KEY || ch == 0) {
+                ch = _getch();
+                if (ch == KeyCodes::P1_KEY_LEFT_ARROW) p1Action = PlayerAction::MOVE_LEFT;
+                else if (ch == KeyCodes::P1_KEY_RIGHT_ARROW) p1Action = PlayerAction::MOVE_RIGHT;
+                else if (ch == KeyCodes::P1_KEY_UP_ARROW) p1Action = PlayerAction::ROTATE;
+                else if (ch == KeyCodes::P1_KEY_DOWN_ARROW) p1Action = PlayerAction::SOFT_DROP;
+            }
+            else if (ch == KeyCodes::P1_KEY_SPACE) p1Action = PlayerAction::HARD_DROP;
+        }
     }
-    else {
+    else if (gameMode_ == GameMode::TWO_PLAYER) {
+        if (!isGameOver_[0] && !gameWon_[0]) {
+            char char_ch = static_cast<char>(std::tolower(ch));
+            if (char_ch == KeyCodes::P2_KEY_LEFT) p1Action = PlayerAction::MOVE_LEFT;
+            else if (char_ch == KeyCodes::P2_KEY_RIGHT) p1Action = PlayerAction::MOVE_RIGHT;
+            else if (char_ch == KeyCodes::P2_KEY_UP) p1Action = PlayerAction::ROTATE;
+            else if (char_ch == KeyCodes::P2_KEY_DOWN) p1Action = PlayerAction::SOFT_DROP;
+            else if (char_ch == KeyCodes::P2_KEY_TAB) p1Action = PlayerAction::HARD_DROP;
+        }
+
+        if (!isGameOver_[1] && !gameWon_[1]) {
+            if (ch == KeyCodes::EXT_KEY || ch == 0) {
+                ch = _getch();
+                if (ch == KeyCodes::P1_KEY_LEFT_ARROW) p2Action = PlayerAction::MOVE_LEFT;
+                else if (ch == KeyCodes::P1_KEY_RIGHT_ARROW) p2Action = PlayerAction::MOVE_RIGHT;
+                else if (ch == KeyCodes::P1_KEY_UP_ARROW) p2Action = PlayerAction::ROTATE;
+                else if (ch == KeyCodes::P1_KEY_DOWN_ARROW) p2Action = PlayerAction::SOFT_DROP;
+            }
+            else if (ch == KeyCodes::P1_KEY_SPACE) p2Action = PlayerAction::HARD_DROP;
+        }
+    }
+    /*else {
         if (!isGameOver_[0] && !gameWon_[0]) {
             if (ch == KeyCodes::P1_KEY_SPACE) p1Action = PlayerAction::HARD_DROP;
         }
@@ -381,7 +417,7 @@ void TetrisGame::processInput() {
             if (gameMode_ == GameMode::TWO_PLAYER) { isGameOver_[1] = true; gameWon_[1] = false; }
             return;
         }
-    }
+    }*/
 
     if (p1Action != PlayerAction::NONE) {
         if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
@@ -503,8 +539,8 @@ void TetrisGame::checkLevelUp(int playerIndex) {
                 renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 1); renderer_.setColor(YELLOW); std::cout << nextStageMsg;
                 Sleep(2500);
 
-                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY);     std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
-                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 1); std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2 - 2, msgY);     std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2 - 2, msgY + 1); std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
             }
             else {
                 gameWon_[playerIndex] = true;

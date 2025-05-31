@@ -23,6 +23,9 @@ public:
     void drawGameOver();
     void drawPlayerSelectionScreen(int& selection);
     void drawPlayerMessage(int playerIndex, const std::string& message);
+    void drawOptionSelectionScreen(int& selection);
+    void drawStory();
+    void drawHowToPlay();
 
     int getPlayerBoardOffsetX(int playerIndex) const;
     int getPlayerBoardOffsetY(int playerIndex) const;
