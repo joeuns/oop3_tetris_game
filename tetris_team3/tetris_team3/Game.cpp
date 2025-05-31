@@ -357,15 +357,6 @@ void TetrisGame::processInput() {
     PlayerAction p1Action = PlayerAction::NONE;
     PlayerAction p2Action = PlayerAction::NONE;
 
-    /*if (ch == KeyCodes::EXT_KEY || ch == 0) {
-        ch = _getch();
-        if (!isGameOver_[0] && !gameWon_[0]) {
-            if (ch == KeyCodes::P1_KEY_LEFT_ARROW) p1Action = PlayerAction::MOVE_LEFT;
-            else if (ch == KeyCodes::P1_KEY_RIGHT_ARROW) p1Action = PlayerAction::MOVE_RIGHT;
-            else if (ch == KeyCodes::P1_KEY_UP_ARROW) p1Action = PlayerAction::ROTATE;
-            else if (ch == KeyCodes::P1_KEY_DOWN_ARROW) p1Action = PlayerAction::SOFT_DROP;
-        }
-    }*/
     if (gameMode_ == GameMode::ONE_PLAYER) {
         if (!isGameOver_[0] && !gameWon_[0]) {
             if (ch == KeyCodes::EXT_KEY || ch == 0) {
@@ -399,25 +390,6 @@ void TetrisGame::processInput() {
             else if (ch == KeyCodes::P1_KEY_SPACE) p2Action = PlayerAction::HARD_DROP;
         }
     }
-    /*else {
-        if (!isGameOver_[0] && !gameWon_[0]) {
-            if (ch == KeyCodes::P1_KEY_SPACE) p1Action = PlayerAction::HARD_DROP;
-        }
-        if (gameMode_ == GameMode::TWO_PLAYER && !isGameOver_[1] && !gameWon_[1]) {
-            char char_ch = static_cast<char>(std::tolower(ch));
-            if (char_ch == KeyCodes::P2_KEY_LEFT) p2Action = PlayerAction::MOVE_LEFT;
-            else if (char_ch == KeyCodes::P2_KEY_RIGHT) p2Action = PlayerAction::MOVE_RIGHT;
-            else if (char_ch == KeyCodes::P2_KEY_UP) p2Action = PlayerAction::ROTATE;
-            else if (char_ch == KeyCodes::P2_KEY_DOWN) p2Action = PlayerAction::SOFT_DROP;
-            else if (char_ch == KeyCodes::P2_KEY_TAB) p2Action = PlayerAction::HARD_DROP;
-        }
-
-        if (ch == KeyCodes::KEY_ESC) {
-            isGameOver_[0] = true; gameWon_[0] = false;
-            if (gameMode_ == GameMode::TWO_PLAYER) { isGameOver_[1] = true; gameWon_[1] = false; }
-            return;
-        }
-    }*/
 
     if (p1Action != PlayerAction::NONE) {
         if (currentBlock_[0]) renderer_.eraseBlock(*currentBlock_[0], 0);
