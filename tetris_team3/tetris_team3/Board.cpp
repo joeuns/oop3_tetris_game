@@ -1,6 +1,11 @@
-﻿#include "Board.h"
+﻿#include "Game.h"
+#include "Board.h"
 #include "Block.h"
+#include "Renderer.h"
+#include "Color.h"
 #include <iostream>
+enum class GameMode;
+
 
 Board::Board() {
     init();
@@ -57,8 +62,10 @@ bool Board::mergeBlock(int shape, int angle, int x, int y) {
     return canMerge;
 }
 
-int Board::clearFullLines() {
+int Board::clearFullLines(GameMode mode, int stage, int playerIndex) {
     int clearedLines = 0;
+    auto& renderer = Renderer::get();
+
     for (int i = ROWS - 2; i >= 0; --i) {
         bool lineFull = true;
         for (int j = 1; j < COLS - 1; ++j) {
@@ -69,6 +76,10 @@ int Board::clearFullLines() {
         }
 
         if (lineFull) {
+            if (mode == GameMode::ONE_PLAYER)
+                renderer.drawLineClearEffect(i, stage);
+            else
+                renderer.drawLineClearEffect2p(i, stage, playerIndex);
             ++clearedLines;
             for (int k = i; k > 0; --k)
                 for (int j = 1; j < COLS - 1; ++j)

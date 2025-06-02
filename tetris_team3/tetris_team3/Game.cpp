@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
+#include <numeric>
 
 TetrisGame::TetrisGame()
     : gameMode_(GameMode::ONE_PLAYER), startLevel_(0), currentStage_(0) {
@@ -91,7 +92,10 @@ void TetrisGame::initPlayer(int playerIndex) {
     board_[playerIndex].init();
     renderer_.drawBoard(board_[playerIndex], playerIndex);
 
+    setRotationLockedBlocks(level_[playerIndex]); // 이거 추가해야 회전 금지 블럭 보임
+
     nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
+
 
     if (!spawnBlock(playerIndex)) {
         isGameOver_[playerIndex] = true;
@@ -104,6 +108,9 @@ void TetrisGame::initPlayer(int playerIndex) {
 }
 
 void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
+    setRotationLockedBlocks(stageIdx);
+
+
     isGameOver_[playerIndex] = false;
     gameWon_[playerIndex] = false;
     level_[playerIndex] = stageIdx;
@@ -114,7 +121,6 @@ void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
 
     delete currentBlock_[playerIndex]; currentBlock_[playerIndex] = nullptr;
     delete nextBlock_[playerIndex];    nextBlock_[playerIndex] = nullptr;
-
     nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
 
     if (!spawnBlock(playerIndex)) {
@@ -334,10 +340,21 @@ bool TetrisGame::spawnBlock(int playerIndex) {
     if (currentBlock_[playerIndex] == nullptr) {
         currentBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
     }
-    currentBlock_[playerIndex]->reset(currentBlock_[playerIndex]->getShape(), Board::COLS / 2 - 2, 0);
+
+    // 회전 금지 여부 설정
+    int shapeId = currentBlock_[playerIndex]->getShape();
+    bool isLocked = std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), shapeId) != rotationLockedBlocks_.end();
+    currentBlock_[playerIndex]->setRotationLocked(isLocked);
+
+    //
+    currentBlock_[playerIndex]->reset(shapeId, Board::COLS / 2 - 2, 0);
 
     nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
-
+    //
+    int nextShapeId = nextBlock_[playerIndex]->getShape();
+    bool nextLocked = std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), nextShapeId) != rotationLockedBlocks_.end();
+    nextBlock_[playerIndex]->setRotationLocked(nextLocked);
+    //
     if (board_[playerIndex].strikeCheck(currentBlock_[playerIndex]->getShape(), currentBlock_[playerIndex]->getAngle(),
         currentBlock_[playerIndex]->getX(), currentBlock_[playerIndex]->getY())) {
         if (currentBlock_[playerIndex]) renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
@@ -402,6 +419,11 @@ void TetrisGame::processInput() {
 }
 
 void TetrisGame::handlePlayerAction(int playerIndex, PlayerAction action) {
+    if (action == PlayerAction::ROTATE &&
+        std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), currentBlock_[playerIndex]->getShape()) != rotationLockedBlocks_.end()) {
+        // 회전 금지된 블럭
+        return;
+    }
     if (!currentBlock_[playerIndex] || isGameOver_[playerIndex] || gameWon_[playerIndex]) return;
 
     bool shouldRedrawBlock = true;
@@ -427,7 +449,7 @@ void TetrisGame::handlePlayerAction(int playerIndex, PlayerAction action) {
     }
 
     if (shouldRedrawBlock && !isGameOver_[playerIndex] && !gameWon_[playerIndex] && currentBlock_[playerIndex]) {
-        renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
+        renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex, false);
     }
 }
 
@@ -447,7 +469,7 @@ void TetrisGame::updatePlayer(int playerIndex) {
         }
         renderer_.drawBoard(board_[playerIndex], playerIndex);
 
-        int cleared = board_[playerIndex].clearFullLines();
+        int cleared = board_[playerIndex].clearFullLines(gameMode_, level_[playerIndex], playerIndex);
         if (cleared > 0) {
             lines_[playerIndex] += cleared;
             totalLinesCleared_[playerIndex] += cleared;
@@ -503,16 +525,28 @@ void TetrisGame::checkLevelUp(int playerIndex) {
                 renderer_.drawBoard(board_[playerIndex], playerIndex);
 
                 std::string stageClearMsg = "Stage " + std::to_string(currentStageIdx + 1) + " Cleared!";
+                std::string stageClearMsg2 = " 이삿짐 옮기기";
+                std::string stageClearMsg3 = "    스킬이";
+                std::string stageClearMsg4 = "향상되었습니다!";
                 std::string nextStageMsg = "Stage " + std::to_string(level_[playerIndex] + 1) + " Start!";
                 int msgX = renderer_.getPlayerBoardOffsetX(playerIndex) + Board::COLS - (stageClearMsg.length() / 2);
                 int msgY = renderer_.getPlayerBoardOffsetY(playerIndex) + Board::ROWS / 2 - 1;
 
                 renderer_.gotoXY(msgX, msgY); renderer_.setColor(GREEN); std::cout << stageClearMsg;
-                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 1); renderer_.setColor(YELLOW); std::cout << nextStageMsg;
-                Sleep(2500);
+                renderer_.gotoXY(msgX, msgY + 2); renderer_.setColor(DARK_GREEN); std::cout << stageClearMsg2;
+                renderer_.gotoXY(msgX, msgY + 3); renderer_.setColor(DARK_GREEN); std::cout << stageClearMsg3;
+                renderer_.gotoXY(msgX, msgY + 4); renderer_.setColor(DARK_GREEN); std::cout << stageClearMsg4;
+                Sleep(1500);
+                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2, msgY + 6); renderer_.setColor(YELLOW); std::cout << nextStageMsg;
+                Sleep(2000);
 
-                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2 - 2, msgY);     std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
-                renderer_.gotoXY(msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2 - 2, msgY + 1); std::cout << std::string(std::max(stageClearMsg.length(), nextStageMsg.length()) + 5, ' ');
+                int eraseStartX = msgX - (nextStageMsg.length() - stageClearMsg.length()) / 2 - 2;
+                int eraseWidth = std::max({ stageClearMsg.length(), stageClearMsg2.length(), nextStageMsg.length() }) + 5;
+
+                for (int i = 0; i <= 6; ++i) {
+                    renderer_.gotoXY(eraseStartX, msgY + i);
+                    std::cout << std::string(eraseWidth, ' ');
+                }
             }
             else {
                 gameWon_[playerIndex] = true;
@@ -526,4 +560,21 @@ void TetrisGame::checkLevelUp(int playerIndex) {
         int linesRemaining = std::max(0, linesNeeded - lines_[playerIndex]);
         renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex);
     }
+}
+
+void TetrisGame::setRotationLockedBlocks(int stageIdx) {
+    rotationLockedBlocks_.clear();
+    int lockCount = 0;
+    switch (stageIdx) {
+    case 0: lockCount = 5; break;
+    case 1: lockCount = 7; break;
+    case 2: lockCount = 9; break;
+    default: return;
+    }
+
+    std::vector<int> allIndices(TOTAL_SHAPES);
+    std::iota(allIndices.begin(), allIndices.end(), 0); // 0~20
+
+    std::random_shuffle(allIndices.begin(), allIndices.end());
+    rotationLockedBlocks_.assign(allIndices.begin(), allIndices.begin() + lockCount);
 }

@@ -57,6 +57,9 @@ private:
     void checkLevelUp(int playerIndex);
 
     int getRandomShapeIndex(int playerIndex);
+
+    std::vector<int> rotationLockedBlocks_;
+    void setRotationLockedBlocks(int stageIdx);
 };
 
 namespace KeyCodes {

@@ -187,6 +187,15 @@ void Block::reset(int shape, int startX, int startY) {
     y_ = startY;
 }
 
+void Block::setRotationLocked(bool locked) {
+    rotationLocked_ = locked;
+}
+
+bool Block::isRotationLocked() const
+{
+    return rotationLocked_;
+}
+
 bool Block::move(int dx, int dy, const Board& board) {
     int newX = x_ + dx;
     int newY = y_ + dy;
@@ -199,6 +208,8 @@ bool Block::move(int dx, int dy, const Board& board) {
 }
 
 void Block::rotate(const Board& board) {
+    if (rotationLocked_) return; //회전 금지 
+
     int newAngle = (angle_ + 1) % 4;
 
     const int offsetCount = 5;

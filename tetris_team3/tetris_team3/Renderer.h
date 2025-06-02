@@ -1,5 +1,4 @@
 ﻿#pragma once
-
 #include "Board.h"
 #include "Block.h"
 #include <string>
@@ -33,6 +32,9 @@ public:
     int getPlayerNextAreaBaseY(int playerIndex) const;
     int getPlayerStatsAreaBaseX(int playerIndex) const;
     int getPlayerStatsAreaBaseY(int playerIndex) const;
+    static Renderer& get();
+    void drawLineClearEffect(int row, int stage);
+    void drawLineClearEffect2p(int row, int stage, int playerIndex);
 
 private:
     static constexpr int P1_BOARD_OFFSET_X = 2;

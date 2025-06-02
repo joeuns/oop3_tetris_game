@@ -28,6 +28,12 @@ int Renderer::getPlayerStatsAreaBaseY(int playerIndex) const {
     return (playerIndex == 0) ? P1_STATS_Y_ABS : P2_STATS_Y_ABS;
 }
 
+Renderer& Renderer::get()
+{
+    static Renderer instance;
+    return instance;
+}
+
 void Renderer::initConsole(bool isTwoPlayerMode) {
     if (isTwoPlayerMode) {
         system("mode con: cols=120 lines=30");
@@ -103,29 +109,34 @@ void Renderer::drawBlock(const Block& block, int playerIndex, int customOffsetX,
     }
 
     int blockColor;
-    switch (shape) {
-    case 0:  blockColor = WHITE; break;
-    case 1:  blockColor = GRAY; break;
-    case 2:  blockColor = DARK_GREEN; break;
-    case 3:  blockColor = DARK_SKY_BLUE; break;
-    case 4:  blockColor = RED; break;
-    case 5:  blockColor = YELLOW; break;
-    case 6:  blockColor = VIOLET; break;
-    case 7:  blockColor = BLUE; break;
-    case 8:  blockColor = DARK_YELLOW; break;
-    case 9:  blockColor = GREEN; break;
-    case 10: blockColor = SKY_BLUE; break;
-    case 11: blockColor = DARK_RED; break;
-    case 12: blockColor = DARK_BLUE; break;
-    case 13: blockColor = DARK_VIOLET; break;
-    case 14: blockColor = GREEN; break;
-    case 15: blockColor = YELLOW; break;
-    case 16: blockColor = RED; break;
-    case 17: blockColor = BLUE; break;
-    case 18: blockColor = WHITE; break;
-    case 19: blockColor = VIOLET; break;
-    case 20: blockColor = SKY_BLUE; break;
-    default: blockColor = GRAY; break;
+    if (block.isRotationLocked()) {
+        blockColor = DARK_GRAY; // 회전 금지 시 회색
+    }
+    else {
+        switch (shape) {
+        case 0:  blockColor = WHITE; break;
+        case 1:  blockColor = GRAY; break;
+        case 2:  blockColor = DARK_GREEN; break;
+        case 3:  blockColor = DARK_SKY_BLUE; break;
+        case 4:  blockColor = RED; break;
+        case 5:  blockColor = YELLOW; break;
+        case 6:  blockColor = VIOLET; break;
+        case 7:  blockColor = BLUE; break;
+        case 8:  blockColor = DARK_YELLOW; break;
+        case 9:  blockColor = GREEN; break;
+        case 10: blockColor = SKY_BLUE; break;
+        case 11: blockColor = DARK_RED; break;
+        case 12: blockColor = DARK_BLUE; break;
+        case 13: blockColor = DARK_VIOLET; break;
+        case 14: blockColor = GREEN; break;
+        case 15: blockColor = YELLOW; break;
+        case 16: blockColor = RED; break;
+        case 17: blockColor = BLUE; break;
+        case 18: blockColor = WHITE; break;
+        case 19: blockColor = VIOLET; break;
+        case 20: blockColor = SKY_BLUE; break;
+        default: blockColor = GRAY; break;
+        }
     }
     setColor(blockColor);
 
@@ -203,7 +214,7 @@ void Renderer::drawNextBlockArea(const Block& nextBlock, int playerIndex) {
         }
     }
     gotoXY(boxScreenX + (NEXT_BLOCK_BOX_WIDTH * 2 - 4) / 2 - 1, boxScreenY - 1);
-    std::cout << "NEXT";
+    std::cout << " NEXT";
 
     int blockDisplayAreaX = boxScreenX + 2;
     int blockDisplayAreaY = boxScreenY + 1;
@@ -253,18 +264,29 @@ void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex
     std::cout << "LINES: ";
     std::cout << std::setw(3) << std::left << linesToClear << "   ";
 
+    gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, baseStatsScreenY + STATS_Y_OFFSET_LINES + 2);
+    switch (level)
+    {
+    case 0: std::cout << "원룸 이사 중 …"; break;
+    case 1: std::cout << "신혼집 이사 중 …"; break;
+    case 2: std::cout << "대가족 이사 중 …"; break;
+    default: break;
+    }
+
     setColor(BLACK);
 }
 
 void Renderer::drawLogo() {
     setColor(WHITE);
-    gotoXY(13, 3);  std::cout << "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓";
-    gotoXY(13, 4);  std::cout << "┃◆ ◆ ◆  ◆◆◆  ◆ ◆ ◆   ◆◆     ◆   ◆ ◆ ◆         ┃";
-    gotoXY(13, 5);  std::cout << "┃  ◆    ◆      ◆     ◆ ◆    ◆   ◆             ┃";
-    gotoXY(13, 6);  std::cout << "┃  ◆    ◆◆◆    ◆     ◆◆     ◆     ◆           ┃";
-    gotoXY(13, 7);  std::cout << "┃  ◆    ◆      ◆     ◆ ◆    ◆       ◆         ┃";
-    gotoXY(13, 8);  std::cout << "┃  ◆    ◆◆◆    ◆     ◆  ◆   ◆   ◆ ◆ ◆         ┃";
-    gotoXY(13, 9);  std::cout << "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛";
+    gotoXY(10, 3);  std::cout << "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓";
+    gotoXY(10, 4);  std::cout << "┃  .-..-. .--. .-..-..-..-..-. .--.      .---.  .--. .-..-.  ┃";
+    gotoXY(10, 5);  std::cout << "┃  : `' :: ,. :: :: :: :: `: :: .--'     : .  :: .; :: :: :  ┃";
+    gotoXY(10, 6);  std::cout << "┃  : .. :: :: :: :: :: :: .` :: : _      : :: ::    :`.  .'  ┃";
+    gotoXY(10, 7);  std::cout << "┃  : :; :: :; :: `' ;: :: :. :: :; :     : :; :: :: : .' ;   ┃";
+    gotoXY(10, 8);  std::cout << "┃  :_;:_;`.__.' `.,' :_;:_;:_;`.__.'     :___.':_;:_;:_,'    ┃";
+    gotoXY(10, 9);  std::cout << "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛";
+    gotoXY(28, 10);  std::cout << "T E T R I S   G A M E";
+
     gotoXY(28, 20); std::cout << "Please Press Any Key~!";
 
     int logoBlocksBaseX = 20;
@@ -466,4 +488,190 @@ void Renderer::drawHowToPlay() {
     
     gotoXY(32, 27); std::cout << "Press Any Key to Exit!";
     _getch();
+}
+
+void Renderer::drawLineClearEffect(int row, int stage) {
+        int offsetX = getPlayerBoardOffsetX(0); // 1인용 기준
+        int offsetY = getPlayerBoardOffsetY(0);
+        const int truckStartX = Board::COLS * 2 + offsetX + 2;
+        const int truckY = offsetY + Board::ROWS - 8; // 화면 하단에서 6줄 위쪽에 고정
+
+        // 줄 하나하나 지우는 효과
+        for (int j = 1; j < Board::COLS - 1; ++j) {
+            int screenX = j * 2 + offsetX;
+            int screenY = row + offsetY;
+
+            setColor(SKY_BLUE);
+            gotoXY(screenX, screenY);
+            std::cout << "□";
+            Sleep(25);
+
+            gotoXY(screenX, screenY);
+            std::cout << "  ";
+        }
+
+
+        const char* truck1[] = {
+           " ───────────────────",
+           "|                   |",
+           "|                   |_ ",
+           "|───────────Truck──||□|\\",
+           "|___/ [_]_|___==___||__||",
+           "((@)─────────((@)───(◎))"
+        };
+
+        const char* truck2[] = {
+            " ───────────────────────",
+            "|                       |",
+            "|                       |_ ",
+            "|───────────Truck──────||□|\\",
+            "|___/ [_]_|___==___────||__||",
+            "((@)─────────────((@)───(◎))"
+        };
+
+        const char* truck3[] = {
+            " ───────────────────────────",
+            "|                           |",
+            "|                           |_ ",
+            "|─────────────Truck────────||□|\\",
+            "|___/ [_]_|___==___────────||__||",
+            "((@)─────────────────((@)───(◎))"
+        };
+        const char** truck = truck1;
+        if (stage == 1) truck = truck2;
+        else if (stage == 2) truck = truck3;
+        const int truckHeight = 6;
+        const int truckSteps = 3;
+
+        setColor(WHITE);
+        for (int step = 0; step < truckSteps; ++step) {
+            int currX = truckStartX + step;
+            int prevX = currX - 1;
+
+            if (step > 0) {
+                for (int i = 0; i < truckHeight; ++i) {
+                    gotoXY(prevX, truckY + i+1);
+                    std::cout << std::string(strlen(truck[i]), ' ');
+                }
+            }
+
+            for (int i = 0; i < truckHeight; ++i) {
+                gotoXY(currX, truckY + i+1);
+                std::cout << truck[i];
+            }
+
+            Sleep(200);
+        }
+
+        // 트럭 이동 완료 메시지 출력
+        setColor(SKY_BLUE);
+        gotoXY(truckStartX + truckSteps - 1, truckY + truckHeight+1);
+        std::cout << "이삿짐 트럭 이동 완료!";
+
+        Sleep(600);
+
+        // 메시지 지우기
+        gotoXY(truckStartX + truckSteps - 1, truckY + truckHeight+1);
+        std::cout << "                                              ";
+
+        // 트럭 완전히 지우기
+        for (int i = 0; i < truckHeight; ++i) {
+            gotoXY(truckStartX + truckSteps - 1, truckY + i+1);
+            std::cout << std::string(strlen(truck[i]), '  ');
+        }
+
+        setColor(BLACK);
+}
+
+void Renderer::drawLineClearEffect2p(int row, int stage, int playerIndex) {
+    int offsetX = getPlayerBoardOffsetX(playerIndex);
+    int offsetY = getPlayerBoardOffsetY(playerIndex);
+    const int truckStartX = offsetX + Board::COLS * 2 + 2; // 오른쪽 바깥
+    const int truckY = offsetY + Board::ROWS + 1; // 게임판 하단 고정 출력
+
+    // 줄 제거 애니메이션
+    for (int j = 1; j < Board::COLS - 1; ++j) {
+        int screenX = j * 2 + offsetX;
+        int screenY = row + offsetY;
+
+        setColor(SKY_BLUE);
+        gotoXY(screenX, screenY);
+        std::cout << "□";
+        Sleep(25);
+
+        gotoXY(screenX, screenY);
+        std::cout << "  ";
+    }
+
+    // 트럭 선택
+    const char* truck1[] = {
+        " ───────────────────",
+        "|                   |",
+        "|                   |_ ",
+        "|───────────Truck──||□|\\",
+        "|___/ [_]_|___==___||__||",
+        "((@)─────────((@)───(◎))"
+    };
+    const char* truck2[] = {
+        " ───────────────────────",
+        "|                       |",
+        "|                       |_ ",
+        "|───────────Truck──────||□|\\",
+        "|___/ [_]_|___==___────||__||",
+        "((@)─────────────((@)───(◎))"
+    };
+    const char* truck3[] = {
+        " ───────────────────────────",
+        "|                           |",
+        "|                           |_ ",
+        "|─────────────Truck────────||□|\\",
+        "|___/ [_]_|___==___────────||__||",
+        "((@)─────────────────((@)───(◎))"
+    };
+
+    const char** truck = truck1;
+    if (stage == 1) truck = truck2;
+    else if (stage == 2) truck = truck3;
+
+    const int truckHeight = 6;
+    const int truckSteps = 3;
+
+    setColor(WHITE);
+    for (int step = 0; step < truckSteps; ++step) {
+        int currX = truckStartX + step;
+        int prevX = currX - 1;
+
+        if (step > 0) {
+            for (int i = 0; i < truckHeight; ++i) {
+                gotoXY(prevX, truckY + i);
+                std::cout << std::string(strlen(truck[i]), ' ');
+            }
+        }
+
+        for (int i = 0; i < truckHeight; ++i) {
+            gotoXY(currX, truckY + i);
+            std::cout << truck[i];
+        }
+
+        Sleep(200);
+    }
+
+    // 메시지
+    setColor(SKY_BLUE);
+    gotoXY(truckStartX + truckSteps + 2, truckY + truckHeight);
+    std::cout << "이삿짐 트럭 이동 완료!";
+
+    Sleep(600);
+
+    // 메시지 지우기
+    gotoXY(truckStartX + truckSteps + 2, truckY + truckHeight);
+    std::cout << std::string(30, ' ');
+
+    // 트럭 지우기
+    for (int i = 0; i < truckHeight; ++i) {
+        gotoXY(truckStartX + truckSteps - 1, truckY + i);
+        std::cout << std::string(strlen(truck[i]), ' ');
+    }
+
+    setColor(BLACK);
 }

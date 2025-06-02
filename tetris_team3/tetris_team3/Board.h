@@ -1,7 +1,7 @@
 ﻿#pragma once
-
 #include <array>
 #include <vector>
+enum class GameMode;
 
 class Board {
 public:
@@ -15,7 +15,7 @@ public:
     void init();
     bool strikeCheck(int shape, int angle, int x, int y) const;
     bool mergeBlock(int shape, int angle, int x, int y);
-    int clearFullLines();
+    int clearFullLines(GameMode mode, int stage, int playerIndex);
 
     const std::array<std::array<char, COLS>, ROWS>& getGrid() const;
 
