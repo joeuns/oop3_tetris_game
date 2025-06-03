@@ -63,8 +63,8 @@ void TetrisGame::initCommon() {
     srand(static_cast<unsigned>(time(nullptr)));
     stages_ = {
         {20, 15, 2},
-        {15, 20, 7},
-        {10, 25, 10}
+        {15, 20, 2},
+        {10, 25, 3}
     };
     startLevel_ = 0;
 }
@@ -92,8 +92,6 @@ void TetrisGame::initPlayer(int playerIndex) {
     board_[playerIndex].init();
     renderer_.drawBoard(board_[playerIndex], playerIndex);
 
-    setRotationLockedBlocks(level_[playerIndex]); // 이거 추가해야 회전 금지 블럭 보임
-
     nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
 
 
@@ -104,12 +102,10 @@ void TetrisGame::initPlayer(int playerIndex) {
     if (currentLevelForStage < 0) currentLevelForStage = 0;
 
     renderer_.drawStats(level_[playerIndex], score_[playerIndex],
-        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex);
+        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex, (gameMode_ == GameMode::TWO_PLAYER));
 }
 
 void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
-    setRotationLockedBlocks(stageIdx);
-
 
     isGameOver_[playerIndex] = false;
     gameWon_[playerIndex] = false;
@@ -131,7 +127,7 @@ void TetrisGame::initPlayerForStage(int playerIndex, int stageIdx) {
     if (currentLevelForStage < 0) currentLevelForStage = 0;
 
     renderer_.drawStats(level_[playerIndex], score_[playerIndex],
-        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex);
+        stages_[currentLevelForStage].clearLine - lines_[playerIndex], playerIndex, (gameMode_ == GameMode::TWO_PLAYER));
 }
 
 void TetrisGame::run() {
@@ -197,8 +193,8 @@ void TetrisGame::run() {
             int currentLvlP0ForStats = std::min(level_[0], static_cast<int>(stages_.size()) - 1); if (currentLvlP0ForStats < 0) currentLvlP0ForStats = 0;
             int currentLvlP1ForStats = std::min(level_[1], static_cast<int>(stages_.size()) - 1); if (currentLvlP1ForStats < 0) currentLvlP1ForStats = 0;
 
-            renderer_.drawStats(level_[0], score_[0], stages_[currentLvlP0ForStats].clearLine - lines_[0], 0);
-            renderer_.drawStats(level_[1], score_[1], stages_[currentLvlP1ForStats].clearLine - lines_[1], 1);
+            renderer_.drawStats(level_[0], score_[0], stages_[currentLvlP0ForStats].clearLine - lines_[0], 0, (gameMode_ == GameMode::TWO_PLAYER));
+            renderer_.drawStats(level_[1], score_[1], stages_[currentLvlP1ForStats].clearLine - lines_[1], 1, (gameMode_ == GameMode::TWO_PLAYER));
 
             int tick = 0;
             while (!isGameOver_[0] || !isGameOver_[1]) {
@@ -339,22 +335,19 @@ bool TetrisGame::spawnBlock(int playerIndex) {
 
     if (currentBlock_[playerIndex] == nullptr) {
         currentBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
+        currentBlock_[playerIndex]->setRotationLocked(currentStage_);
     }
 
-    // 회전 금지 여부 설정
     int shapeId = currentBlock_[playerIndex]->getShape();
-    bool isLocked = std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), shapeId) != rotationLockedBlocks_.end();
-    currentBlock_[playerIndex]->setRotationLocked(isLocked);
 
-    //
     currentBlock_[playerIndex]->reset(shapeId, Board::COLS / 2 - 2, 0);
 
     nextBlock_[playerIndex] = new Block(getRandomShapeIndex(playerIndex));
-    //
+    
     int nextShapeId = nextBlock_[playerIndex]->getShape();
-    bool nextLocked = std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), nextShapeId) != rotationLockedBlocks_.end();
-    nextBlock_[playerIndex]->setRotationLocked(nextLocked);
-    //
+    // 회전 금지 여부 설정
+    nextBlock_[playerIndex]->setRotationLocked(currentStage_);
+
     if (board_[playerIndex].strikeCheck(currentBlock_[playerIndex]->getShape(), currentBlock_[playerIndex]->getAngle(),
         currentBlock_[playerIndex]->getX(), currentBlock_[playerIndex]->getY())) {
         if (currentBlock_[playerIndex]) renderer_.drawBlock(*currentBlock_[playerIndex], playerIndex);
@@ -419,11 +412,7 @@ void TetrisGame::processInput() {
 }
 
 void TetrisGame::handlePlayerAction(int playerIndex, PlayerAction action) {
-    if (action == PlayerAction::ROTATE &&
-        std::find(rotationLockedBlocks_.begin(), rotationLockedBlocks_.end(), currentBlock_[playerIndex]->getShape()) != rotationLockedBlocks_.end()) {
-        // 회전 금지된 블럭
-        return;
-    }
+    if (action == PlayerAction::ROTATE && currentBlock_[playerIndex]->isRotationLocked()) return; // 회전 금지된 블럭
     if (!currentBlock_[playerIndex] || isGameOver_[playerIndex] || gameWon_[playerIndex]) return;
 
     bool shouldRedrawBlock = true;
@@ -503,7 +492,7 @@ void TetrisGame::updatePlayer(int playerIndex) {
         int currentLevelForStats = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1); if (currentLevelForStats < 0) currentLevelForStats = 0;
         int linesNeeded = stages_[currentLevelForStats].clearLine;
         int linesRemaining = std::max(0, linesNeeded - lines_[playerIndex]);
-        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex);
+        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex, (gameMode_ == GameMode::TWO_PLAYER));
     }
 }
 
@@ -558,23 +547,6 @@ void TetrisGame::checkLevelUp(int playerIndex) {
         int currentLevelForDisplay = std::min(level_[playerIndex], static_cast<int>(stages_.size()) - 1); if (currentLevelForDisplay < 0) currentLevelForDisplay = 0;
         int linesNeeded = stages_[currentLevelForDisplay].clearLine;
         int linesRemaining = std::max(0, linesNeeded - lines_[playerIndex]);
-        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex);
+        renderer_.drawStats(level_[playerIndex], score_[playerIndex], linesRemaining, playerIndex, (gameMode_ == GameMode::TWO_PLAYER));
     }
-}
-
-void TetrisGame::setRotationLockedBlocks(int stageIdx) {
-    rotationLockedBlocks_.clear();
-    int lockCount = 0;
-    switch (stageIdx) {
-    case 0: lockCount = 5; break;
-    case 1: lockCount = 7; break;
-    case 2: lockCount = 9; break;
-    default: return;
-    }
-
-    std::vector<int> allIndices(TOTAL_SHAPES);
-    std::iota(allIndices.begin(), allIndices.end(), 0); // 0~20
-
-    std::random_shuffle(allIndices.begin(), allIndices.end());
-    rotationLockedBlocks_.assign(allIndices.begin(), allIndices.begin() + lockCount);
 }

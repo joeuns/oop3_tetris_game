@@ -247,7 +247,7 @@ void Renderer::drawNextBlockArea(const Block& nextBlock, int playerIndex) {
     }
 }
 
-void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex) {
+void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex, bool isTwoPlayer) {
     setColor(GRAY);
     int baseStatsScreenX = getPlayerStatsAreaBaseX(playerIndex);
     int baseStatsScreenY = getPlayerStatsAreaBaseY(playerIndex);
@@ -260,9 +260,11 @@ void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex
     std::cout << "SCORE: ";
     std::cout << std::setw(7) << std::left << score << "   ";
 
-    gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, baseStatsScreenY + STATS_Y_OFFSET_LINES);
-    std::cout << "LINES: ";
-    std::cout << std::setw(3) << std::left << linesToClear << "   ";
+    if (!isTwoPlayer) {
+        gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, baseStatsScreenY + STATS_Y_OFFSET_LINES);
+        std::cout << "LINES: ";
+        std::cout << std::setw(3) << std::left << linesToClear << "   ";
+    }
 
     gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, baseStatsScreenY + STATS_Y_OFFSET_LINES + 2);
     switch (level)

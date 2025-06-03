@@ -10,7 +10,7 @@ class Block {
 public:
     Block(int shape);
     void reset(int shape, int startX, int startY);
-    void setRotationLocked(bool locked);  // 회전 가능?
+    void setRotationLocked(int stageIdx);  // 랜덤으로 회전 불가능 설정
     bool isRotationLocked() const;        // 회전 가능?
     bool move(int dx, int dy, const Board& board);
     void rotate(const Board& board);

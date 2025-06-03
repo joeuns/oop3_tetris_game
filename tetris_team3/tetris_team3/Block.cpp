@@ -187,8 +187,12 @@ void Block::reset(int shape, int startX, int startY) {
     y_ = startY;
 }
 
-void Block::setRotationLocked(bool locked) {
-    rotationLocked_ = locked;
+void Block::setRotationLocked(int stageIdx) {
+    int lockChancePercent = (stageIdx + 1) * 10;
+    bool isLocked = ((rand() % 100) < lockChancePercent);
+    if (isLocked)
+        rotationLocked_ = true;
+    else rotationLocked_ = false;
 }
 
 bool Block::isRotationLocked() const

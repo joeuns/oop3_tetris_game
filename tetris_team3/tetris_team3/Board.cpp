@@ -65,7 +65,22 @@ bool Board::mergeBlock(int shape, int angle, int x, int y) {
 int Board::clearFullLines(GameMode mode, int stage, int playerIndex) {
     int clearedLines = 0;
     auto& renderer = Renderer::get();
-
+    for (int i = ROWS - 2; i >= 0; --i) {
+        bool lineFull = true;
+        for (int j = 1; j < COLS - 1; ++j) {
+            if (grid_[i][j] == EMPTY_CELL) {
+                lineFull = false;
+                break;
+            }
+        }
+        if (lineFull) {
+            if (mode == GameMode::ONE_PLAYER)
+                renderer.drawLineClearEffect(i, stage);
+            else
+                renderer.drawLineClearEffect2p(i, stage, playerIndex);
+            ++clearedLines;
+        }
+    }
     for (int i = ROWS - 2; i >= 0; --i) {
         bool lineFull = true;
         for (int j = 1; j < COLS - 1; ++j) {
@@ -76,11 +91,6 @@ int Board::clearFullLines(GameMode mode, int stage, int playerIndex) {
         }
 
         if (lineFull) {
-            if (mode == GameMode::ONE_PLAYER)
-                renderer.drawLineClearEffect(i, stage);
-            else
-                renderer.drawLineClearEffect2p(i, stage, playerIndex);
-            ++clearedLines;
             for (int k = i; k > 0; --k)
                 for (int j = 1; j < COLS - 1; ++j)
                     grid_[k][j] = grid_[k - 1][j];

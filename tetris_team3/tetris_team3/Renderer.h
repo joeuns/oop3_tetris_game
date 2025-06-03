@@ -17,7 +17,7 @@ public:
     void drawBlock(const Block& block, int playerIndex, int customOffsetX = -1, int customOffsetY = -1);
     void eraseBlock(const Block& block, int playerIndex, int customOffsetX = -1, int customOffsetY = -1);
     void drawNextBlockArea(const Block& nextBlock, int playerIndex);
-    void drawStats(int level, int score, int lines, int playerIndex);
+    void drawStats(int level, int score, int lines, int playerIndex, bool isTwoPlayer);
     void drawLogo();
     void drawGameOver();
     void drawPlayerSelectionScreen(int& selection);
