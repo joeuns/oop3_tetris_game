@@ -62,9 +62,9 @@ int TetrisGame::getRandomShapeIndex(int playerIndex) {
 void TetrisGame::initCommon() {
     srand(static_cast<unsigned>(time(nullptr)));
     stages_ = {
-        {20, 15, 2},
-        {15, 20, 2},
-        {10, 25, 3}
+        {20, 15, 5},
+        {15, 20, 10},
+        {10, 25, 15}
     };
     startLevel_ = 0;
 }

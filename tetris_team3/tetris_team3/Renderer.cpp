@@ -1,4 +1,4 @@
-#include "Renderer.h"
+ï»¿#include "Renderer.h"
 #include "Color.h"
 #include <Windows.h>
 #include <iostream>
@@ -77,7 +77,7 @@ void Renderer::drawBoard(const Board& board, int playerIndex) {
             char cell = grid[i][j];
             if (cell == Board::WALL_CELL) {
                 setColor((j == 0 || j == Board::COLS - 1 || i == Board::ROWS - 1) ? GRAY : DARK_GRAY);
-                std::cout << "¡á";
+                std::cout << "â– ";
             }
             else {
                 setColor(BLACK);
@@ -110,7 +110,7 @@ void Renderer::drawBlock(const Block& block, int playerIndex, int customOffsetX,
 
     int blockColor;
     if (block.isRotationLocked()) {
-        blockColor = DARK_GRAY; // È¸Àü ±İÁö ½Ã È¸»ö
+        blockColor = DARK_GRAY; // íšŒì „ ê¸ˆì§€ ì‹œ íšŒìƒ‰
     }
     else {
         switch (shape) {
@@ -149,7 +149,7 @@ void Renderer::drawBlock(const Block& block, int playerIndex, int customOffsetX,
                 if (customOffsetX != -1 || (blockBoardY + r >= 0)) {
                     if (customOffsetX != -1 || screenY >= baseBoardRenderY) {
                         gotoXY(screenX, screenY);
-                        std::cout << "¡á";
+                        std::cout << "â– ";
                     }
                 }
             }
@@ -206,7 +206,7 @@ void Renderer::drawNextBlockArea(const Block& nextBlock, int playerIndex) {
         gotoXY(boxScreenX, boxScreenY + i);
         for (int j = 0; j < NEXT_BLOCK_BOX_WIDTH; ++j) {
             if (i == 0 || i == NEXT_BLOCK_BOX_HEIGHT - 1 || j == 0 || j == NEXT_BLOCK_BOX_WIDTH - 1) {
-                std::cout << "¡à ";
+                std::cout << "â–¡ ";
             }
             else {
                 std::cout << "  ";
@@ -269,9 +269,9 @@ void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex
     gotoXY(baseStatsScreenX + STATS_LABEL_X_LEVEL, baseStatsScreenY + STATS_Y_OFFSET_LINES + 2);
     switch (level)
     {
-    case 0: std::cout << "¿ø·ë ÀÌ»ç Áß ¡¦"; break;
-    case 1: std::cout << "½ÅÈ¥Áı ÀÌ»ç Áß ¡¦"; break;
-    case 2: std::cout << "´ë°¡Á· ÀÌ»ç Áß ¡¦"; break;
+    case 0: std::cout << "ì›ë£¸ ì´ì‚¬ ì¤‘ â€¦"; break;
+    case 1: std::cout << "ì‹ í˜¼ì§‘ ì´ì‚¬ ì¤‘ â€¦"; break;
+    case 2: std::cout << "ëŒ€ê°€ì¡± ì´ì‚¬ ì¤‘ â€¦"; break;
     default: break;
     }
 
@@ -280,16 +280,27 @@ void Renderer::drawStats(int level, int score, int linesToClear, int playerIndex
 
 void Renderer::drawLogo() {
     setColor(WHITE);
-    gotoXY(10, 3);  std::cout << "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯";
-    gotoXY(10, 4);  std::cout << "¦­  .-..-. .--. .-..-..-..-..-. .--.      .---.  .--. .-..-.  ¦­";
-    gotoXY(10, 5);  std::cout << "¦­  : `' :: ,. :: :: :: :: `: :: .--'     : .  :: .; :: :: :  ¦­";
-    gotoXY(10, 6);  std::cout << "¦­  : .. :: :: :: :: :: :: .` :: : _      : :: ::    :`.  .'  ¦­";
-    gotoXY(10, 7);  std::cout << "¦­  : :; :: :; :: `' ;: :: :. :: :; :     : :; :: :: : .' ;   ¦­";
-    gotoXY(10, 8);  std::cout << "¦­  :_;:_;`.__.' `.,' :_;:_;:_;`.__.'     :___.':_;:_;:_,'    ¦­";
-    gotoXY(10, 9);  std::cout << "¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°";
+    gotoXY(10, 3);  std::cout << "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“";
+    gotoXY(10, 4);  std::cout << "â”ƒ  .-..-. .--. .-..-..-..-..-. .--.      .---.  .--. .-..-.  â”ƒ";
+    gotoXY(10, 5);  std::cout << "â”ƒ  : `' :: ,. :: :: :: :: `: :: .--'     : .  :: .; :: :: :  â”ƒ";
+    gotoXY(10, 6);  std::cout << "â”ƒ  : .. :: :: :: :: :: :: .` :: : _      : :: ::    :`.  .'  â”ƒ";
+    gotoXY(10, 7);  std::cout << "â”ƒ  : :; :: :; :: `' ;: :: :. :: :; :     : :; :: :: : .' ;   â”ƒ";
+    gotoXY(10, 8);  std::cout << "â”ƒ  :_;:_;`.__.' `.,' :_;:_;:_;`.__.'     :___.':_;:_;:_,'    â”ƒ";
+    gotoXY(10, 9);  std::cout << "â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›";
     gotoXY(28, 10);  std::cout << "T E T R I S   G A M E";
 
     gotoXY(28, 20); std::cout << "Please Press Any Key~!";
+
+    gotoXY(72, 8);  std::cout << "        +------+";
+    gotoXY(72, 9);  std::cout << "       /      /|";
+    gotoXY(72, 10);  std::cout << "      +------+ |";
+    gotoXY(72, 11);  std::cout << "      |      | +";
+    gotoXY(72, 12);  std::cout << "  +---|      |/-----+";
+    gotoXY(72, 13);  std::cout << " /    +------+     /|";
+    gotoXY(72, 14);  std::cout << "+------+ | +------+ |";
+    gotoXY(72, 15);  std::cout << "|      | + |      | +";
+    gotoXY(72, 16);  std::cout << "|      |/  |      |/";
+    gotoXY(72, 17);  std::cout << "+------+   +------+";
 
     int logoBlocksBaseX = 20;
     int logoBlocksBaseY = 14;
@@ -333,9 +344,9 @@ void Renderer::drawGameOver() {
     int centerX = consoleWidth / 2;
     int centerY = 12;
     std::vector<std::string> gameOverMsg = {
-        "¦®¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¯",
-        "¦­      G A M E  O V E R      ¦­",
-        "¦±¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦¬¦°"
+        "â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”“",
+        "â”ƒ      G A M E  O V E R      â”ƒ",
+        "â”—â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”â”›"
     };
     std::string pressKeyMsg = "Handled by Game loop. Press key...";
 
@@ -422,7 +433,25 @@ void Renderer::drawOptionSelectionScreen(int& selection) {
         int choiceX3 = (80 - choice3.length()) / 2 - 4;
 
         while (true) {
-            gotoXY(titleX, 9); setColor(WHITE); std::cout << title;
+            setColor(WHITE);
+            gotoXY(6, 16);  std::cout << "  +------+";
+            gotoXY(6, 17);  std::cout << " /      /|      ";
+            gotoXY(6, 18);  std::cout << "+------+ |";
+            gotoXY(6, 19);  std::cout << "|      | |+------+";
+            gotoXY(6, 20);  std::cout << "|      |//      /|";
+            gotoXY(6, 21);  std::cout << "+------++------+ |";
+            gotoXY(6, 22);  std::cout << "|      ||      | +";
+            gotoXY(6, 23);  std::cout << "|      ||      |/";
+            gotoXY(6, 24);  std::cout << "+------++------+";
+
+            gotoXY(60, 18);  std::cout << "  +------+";
+            gotoXY(60, 19);  std::cout << " /      /|";
+            gotoXY(60, 20);  std::cout << "+------+ |";
+            gotoXY(60, 21);  std::cout << "|      | |";
+            gotoXY(60, 22);  std::cout << "|      |/";
+            gotoXY(60, 23);  std::cout << "+------+";
+
+            gotoXY(titleX, 9); std::cout << title;
 
             gotoXY(choiceX1, 12);
             setColor(currentSelection == 1 ? YELLOW : GRAY);
@@ -467,11 +496,21 @@ void Renderer::drawOptionSelectionScreen(int& selection) {
 void Renderer::drawStory() {
     system("cls");
     setColor(WHITE);
-    std::string temp = "ÀÌ°÷¿¡ ½ºÅä¸® Ãß°¡ ¿¹Á¤";
+    gotoXY(10, 2); std::cout << "ë‹¹ì‹ ì€ ì´ì‚¿ì§ ì„¼í„°ì˜ ì§ì›ì…ë‹ˆë‹¤!";
+    gotoXY(10, 5); std::cout << "ìƒìë¥¼ ì•Œë§ì€ ìœ„ì¹˜ì— ë°°ì¹˜í•´ ë¹ˆ ê³µê°„ì´ ì—†ë„ë¡ ê¼¼ê¼¼íˆ ì •ë¦¬í•´ì£¼ì„¸ìš”.";
+    gotoXY(10, 7); std::cout << "í•œ ì¤„ì´ ëª¨ë‘ ì±„ì›Œì§ˆ ê²½ìš° í•´ë‹¹ ì¤„ì˜ ì§ì€ íŠ¸ëŸ­ìœ¼ë¡œ ì˜®ê²¨ì§‘ë‹ˆë‹¤!";
 
-    int tempX = (80 - temp.length()) / 2;
-    gotoXY(tempX, 10); std::cout << temp;
-    gotoXY(28, 20); std::cout << "Press Any Key to Exit!";
+    gotoXY(10, 10); std::cout << "ì„¼í„°ì—ì„œëŠ” ì›ë£¸, ì‹ í˜¼ì§‘, ëŒ€ê°€ì¡±ê¹Œì§€ ë‹¤ì–‘í•œ ì§‘ì˜ ì´ì‚¬ë¥¼ ë•ìŠµë‹ˆë‹¤.";
+    gotoXY(10, 12); std::cout << "ìì‹ ë§Œì˜ ë…¸í•˜ìš°ë¥¼ ìŒ“ì•„ì˜¬ë ¤ ì‹¤ë ¥ì„ í‚¤ìš´ í›„, ë” í° ì§‘ì˜ ì´ì‚¬ë¥¼ ì‹œë„í•˜ì„¸ìš”!";
+
+    gotoXY(10, 15); std::cout << "ê°€ë”ì€ 2 player ëª¨ë“œë¡œ ë™ë£Œ ì§ì›ê³¼ ê²½ìŸí•˜ë©° ì¼ì„ í•´ë³´ëŠ” ê±´ ì–´ë–¨ê¹Œìš”?";
+    gotoXY(10, 17); std::cout << "ì´ì‚¿ì§ ì„¼í„°ì˜ ì—ì´ìŠ¤ì— ë„ì „í•´ë³´ì„¸ìš”!";
+
+    gotoXY(10, 20); std::cout << "ì, ì´ì œ ì´ì‚¬ë¥¼ ì‹œì‘í•  ì‹œê°„ì´ë„¤ìš”.";
+    gotoXY(10, 22); std::cout << "ë‹¹ì‹ ì˜ ì‘ì—…ì— í–‰ìš´ì„ ë¹•ë‹ˆë‹¤!";
+
+
+    gotoXY(28, 26); std::cout << "Press Any Key to Exit!";
     _getch();
 }
 
@@ -479,33 +518,33 @@ void Renderer::drawHowToPlay() {
     system("cls");
     setColor(WHITE);
     gotoXY(10, 3); std::cout << "            Player 1                             Player 2";
-    gotoXY(10, 6); std::cout << "        ¡ç ¡æ : ºí·° ÁÂ¿ì ÀÌµ¿                 a d : ºí·° ÁÂ¿ì ÀÌµ¿";
-    gotoXY(10, 8); std::cout << "          ¡è : ºí·° È¸Àü                        w : ºí·° È¸Àü";
-    gotoXY(10, 10); std::cout << "          ¡é : ºí·° ³»¸®±â                      s : ºí·° ³»¸®±â";
-    gotoXY(10, 12); std::cout << "½ºÆäÀÌ½º ¹Ù : ºí·° ¹Ù·Î ³»¸®±â            TAB Å° : ºí·° ¹Ù·Î ³»¸®±â";
+    gotoXY(10, 6); std::cout << "        â† â†’ : ë¸”ëŸ­ ì¢Œìš° ì´ë™                 a d : ë¸”ëŸ­ ì¢Œìš° ì´ë™";
+    gotoXY(10, 8); std::cout << "          â†‘ : ë¸”ëŸ­ íšŒì „                        w : ë¸”ëŸ­ íšŒì „";
+    gotoXY(10, 10); std::cout << "          â†“ : ë¸”ëŸ­ ë‚´ë¦¬ê¸°                      s : ë¸”ëŸ­ ë‚´ë¦¬ê¸°";
+    gotoXY(10, 12); std::cout << "ìŠ¤í˜ì´ìŠ¤ ë°” : ë¸”ëŸ­ ë°”ë¡œ ë‚´ë¦¬ê¸°            TAB í‚¤ : ë¸”ëŸ­ ë°”ë¡œ ë‚´ë¦¬ê¸°";
 
-    gotoXY(5, 18); std::cout << "                                ¡Ø  ÁÖÀÇ ¡Ø";
-    gotoXY(5, 20); std::cout << "È¸»ö »óÀÚ´Â Ãë±Ş ÁÖÀÇ ¹°Ç°ÀÌ µé¾î°¡ ÀÖ¾î, Á¶½ÉÈ÷ ´Ù·ï¾ß ÇÏ±â¿¡ È¸ÀüÀÌ ºÒ°¡´ÉÇÕ´Ï´Ù.";
-    gotoXY(5, 22); std::cout << "      ¹«°Å¿î »óÀÚµéÀº ´õ »¡¸® ¶³¾îÁı´Ï´Ù. Å©±â°¡ Å« »óÀÚµéÀ» Á¶½ÉÇÏ¼¼¿ä!";
+    gotoXY(5, 18); std::cout << "                                â€»  ì£¼ì˜ â€»";
+    gotoXY(5, 20); std::cout << "íšŒìƒ‰ ìƒìëŠ” ì·¨ê¸‰ ì£¼ì˜ ë¬¼í’ˆì´ ë“¤ì–´ê°€ ìˆì–´, ì¡°ì‹¬íˆ ë‹¤ë¤„ì•¼ í•˜ê¸°ì— íšŒì „ì´ ë¶ˆê°€ëŠ¥í•©ë‹ˆë‹¤.";
+    gotoXY(5, 22); std::cout << "      ë¬´ê±°ìš´ ìƒìë“¤ì€ ë” ë¹¨ë¦¬ ë–¨ì–´ì§‘ë‹ˆë‹¤. í¬ê¸°ê°€ í° ìƒìë“¤ì„ ì¡°ì‹¬í•˜ì„¸ìš”!";
     
     gotoXY(32, 27); std::cout << "Press Any Key to Exit!";
     _getch();
 }
 
 void Renderer::drawLineClearEffect(int row, int stage) {
-        int offsetX = getPlayerBoardOffsetX(0); // 1ÀÎ¿ë ±âÁØ
+        int offsetX = getPlayerBoardOffsetX(0); // 1ì¸ìš© ê¸°ì¤€
         int offsetY = getPlayerBoardOffsetY(0);
         const int truckStartX = Board::COLS * 2 + offsetX + 2;
-        const int truckY = offsetY + Board::ROWS - 8; // È­¸é ÇÏ´Ü¿¡¼­ 6ÁÙ À§ÂÊ¿¡ °íÁ¤
+        const int truckY = offsetY + Board::ROWS - 8; // í™”ë©´ í•˜ë‹¨ì—ì„œ 6ì¤„ ìœ„ìª½ì— ê³ ì •
 
-        // ÁÙ ÇÏ³ªÇÏ³ª Áö¿ì´Â È¿°ú
+        // ì¤„ í•˜ë‚˜í•˜ë‚˜ ì§€ìš°ëŠ” íš¨ê³¼
         for (int j = 1; j < Board::COLS - 1; ++j) {
             int screenX = j * 2 + offsetX;
             int screenY = row + offsetY;
 
             setColor(SKY_BLUE);
             gotoXY(screenX, screenY);
-            std::cout << "¡à";
+            std::cout << "â–¡";
             Sleep(25);
 
             gotoXY(screenX, screenY);
@@ -514,30 +553,30 @@ void Renderer::drawLineClearEffect(int row, int stage) {
 
 
         const char* truck1[] = {
-           " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+           " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
            "|                   |",
            "|                   |_ ",
-           "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡||¡à|\\",
+           "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€||â–¡|\\",
            "|___/ [_]_|___==___||__||",
-           "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+           "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
         };
 
         const char* truck2[] = {
-            " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+            " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
             "|                       |",
             "|                       |_ ",
-            "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡¦¡¦¡¦¡¦¡||¡à|\\",
-            "|___/ [_]_|___==___¦¡¦¡¦¡¦¡||__||",
-            "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+            "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€â”€â”€â”€â”€||â–¡|\\",
+            "|___/ [_]_|___==___â”€â”€â”€â”€||__||",
+            "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
         };
 
         const char* truck3[] = {
-            " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+            " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
             "|                           |",
             "|                           |_ ",
-            "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡||¡à|\\",
-            "|___/ [_]_|___==___¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡||__||",
-            "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+            "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€â”€â”€â”€â”€â”€â”€||â–¡|\\",
+            "|___/ [_]_|___==___â”€â”€â”€â”€â”€â”€â”€â”€||__||",
+            "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
         };
         const char** truck = truck1;
         if (stage == 1) truck = truck2;
@@ -565,18 +604,18 @@ void Renderer::drawLineClearEffect(int row, int stage) {
             Sleep(200);
         }
 
-        // Æ®·° ÀÌµ¿ ¿Ï·á ¸Ş½ÃÁö Ãâ·Â
+        // íŠ¸ëŸ­ ì´ë™ ì™„ë£Œ ë©”ì‹œì§€ ì¶œë ¥
         setColor(SKY_BLUE);
         gotoXY(truckStartX + truckSteps - 1, truckY + truckHeight+1);
-        std::cout << "ÀÌ»ñÁü Æ®·° ÀÌµ¿ ¿Ï·á!";
+        std::cout << "ì´ì‚¿ì§ íŠ¸ëŸ­ ì´ë™ ì™„ë£Œ!";
 
         Sleep(600);
 
-        // ¸Ş½ÃÁö Áö¿ì±â
+        // ë©”ì‹œì§€ ì§€ìš°ê¸°
         gotoXY(truckStartX + truckSteps - 1, truckY + truckHeight+1);
         std::cout << "                                              ";
 
-        // Æ®·° ¿ÏÀüÈ÷ Áö¿ì±â
+        // íŠ¸ëŸ­ ì™„ì „íˆ ì§€ìš°ê¸°
         for (int i = 0; i < truckHeight; ++i) {
             gotoXY(truckStartX + truckSteps - 1, truckY + i+1);
             std::cout << std::string(strlen(truck[i]), '  ');
@@ -588,47 +627,47 @@ void Renderer::drawLineClearEffect(int row, int stage) {
 void Renderer::drawLineClearEffect2p(int row, int stage, int playerIndex) {
     int offsetX = getPlayerBoardOffsetX(playerIndex);
     int offsetY = getPlayerBoardOffsetY(playerIndex);
-    const int truckStartX = offsetX + Board::COLS * 2 + 2; // ¿À¸¥ÂÊ ¹Ù±ù
-    const int truckY = offsetY + Board::ROWS + 1; // °ÔÀÓÆÇ ÇÏ´Ü °íÁ¤ Ãâ·Â
+    const int truckStartX = offsetX + Board::COLS * 2 + 2; // ì˜¤ë¥¸ìª½ ë°”ê¹¥
+    const int truckY = offsetY + Board::ROWS + 1; // ê²Œì„íŒ í•˜ë‹¨ ê³ ì • ì¶œë ¥
 
-    // ÁÙ Á¦°Å ¾Ö´Ï¸ŞÀÌ¼Ç
+    // ì¤„ ì œê±° ì• ë‹ˆë©”ì´ì…˜
     for (int j = 1; j < Board::COLS - 1; ++j) {
         int screenX = j * 2 + offsetX;
         int screenY = row + offsetY;
 
         setColor(SKY_BLUE);
         gotoXY(screenX, screenY);
-        std::cout << "¡à";
+        std::cout << "â–¡";
         Sleep(25);
 
         gotoXY(screenX, screenY);
         std::cout << "  ";
     }
 
-    // Æ®·° ¼±ÅÃ
+    // íŠ¸ëŸ­ ì„ íƒ
     const char* truck1[] = {
-        " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+        " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
         "|                   |",
         "|                   |_ ",
-        "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡||¡à|\\",
+        "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€||â–¡|\\",
         "|___/ [_]_|___==___||__||",
-        "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+        "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
     };
     const char* truck2[] = {
-        " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+        " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
         "|                       |",
         "|                       |_ ",
-        "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡¦¡¦¡¦¡¦¡||¡à|\\",
-        "|___/ [_]_|___==___¦¡¦¡¦¡¦¡||__||",
-        "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+        "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€â”€â”€â”€â”€||â–¡|\\",
+        "|___/ [_]_|___==___â”€â”€â”€â”€||__||",
+        "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
     };
     const char* truck3[] = {
-        " ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡",
+        " â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€",
         "|                           |",
         "|                           |_ ",
-        "|¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡Truck¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡||¡à|\\",
-        "|___/ [_]_|___==___¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡||__||",
-        "((@)¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡((@)¦¡¦¡¦¡(¡İ))"
+        "|â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€Truckâ”€â”€â”€â”€â”€â”€â”€â”€||â–¡|\\",
+        "|___/ [_]_|___==___â”€â”€â”€â”€â”€â”€â”€â”€||__||",
+        "((@)â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€((@)â”€â”€â”€(â—))"
     };
 
     const char** truck = truck1;
@@ -658,18 +697,18 @@ void Renderer::drawLineClearEffect2p(int row, int stage, int playerIndex) {
         Sleep(200);
     }
 
-    // ¸Ş½ÃÁö
+    // ë©”ì‹œì§€
     setColor(SKY_BLUE);
     gotoXY(truckStartX + truckSteps + 2, truckY + truckHeight);
-    std::cout << "ÀÌ»ñÁü Æ®·° ÀÌµ¿ ¿Ï·á!";
+    std::cout << "ì´ì‚¿ì§ íŠ¸ëŸ­ ì´ë™ ì™„ë£Œ!";
 
     Sleep(600);
 
-    // ¸Ş½ÃÁö Áö¿ì±â
+    // ë©”ì‹œì§€ ì§€ìš°ê¸°
     gotoXY(truckStartX + truckSteps + 2, truckY + truckHeight);
     std::cout << std::string(30, ' ');
 
-    // Æ®·° Áö¿ì±â
+    // íŠ¸ëŸ­ ì§€ìš°ê¸°
     for (int i = 0; i < truckHeight; ++i) {
         gotoXY(truckStartX + truckSteps - 1, truckY + i);
         std::cout << std::string(strlen(truck[i]), ' ');
