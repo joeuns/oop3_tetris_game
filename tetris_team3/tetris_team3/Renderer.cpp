@@ -523,9 +523,10 @@ void Renderer::drawHowToPlay() {
     gotoXY(10, 10); std::cout << "          ↓ : 블럭 내리기                      s : 블럭 내리기";
     gotoXY(10, 12); std::cout << "스페이스 바 : 블럭 바로 내리기            TAB 키 : 블럭 바로 내리기";
 
-    gotoXY(5, 18); std::cout << "                                ※  주의 ※";
-    gotoXY(5, 20); std::cout << "회색 상자는 취급 주의 물품이 들어가 있어, 조심히 다뤄야 하기에 회전이 불가능합니다.";
-    gotoXY(5, 22); std::cout << "      무거운 상자들은 더 빨리 떨어집니다. 크기가 큰 상자들을 조심하세요!";
+    gotoXY(5, 17); std::cout << "                                ※  주의 ※";
+    gotoXY(5, 19); std::cout << "회색 상자는 취급 주의 물품이 들어가 있어, 조심히 다뤄야 하기에 회전이 불가능합니다.";
+    gotoXY(5, 21); std::cout << "        무거운 상자들은 더 빨리 떨어집니다. 크기가 큰 상자들을 조심하세요!";
+    gotoXY(1, 23); std::cout << "2p 모드에서는 양 쪽이 모두 게임 오버될 때까지 끝나지 않으며, 총 3판 중 2판을 이기는 사람이 승자입니다.";
     
     gotoXY(32, 27); std::cout << "Press Any Key to Exit!";
     _getch();
