@@ -24,6 +24,7 @@ TetrisGame::TetrisGame()
         lines_[i] = 0;
         totalLinesCleared_[i] = 0;
         stageWins_[i] = 0;
+        totalscore_[i] = 0;
         gameWon_[i] = false;
     }
 }
@@ -197,6 +198,8 @@ void TetrisGame::run() {
             renderer_.drawStats(level_[1], score_[1], stages_[currentLvlP1ForStats].clearLine - lines_[1], 1, (gameMode_ == GameMode::TWO_PLAYER));
 
             int tick = 0;
+            totalscore_[0] += score_[0];
+            totalscore_[1] += score_[1];
             score_[0] = 0;
             score_[1] = 0;
             while (!isGameOver_[0] || !isGameOver_[1]) {
@@ -297,9 +300,9 @@ void TetrisGame::run() {
         std::cout << "--- GAME FINISHED ---";
 
         renderer_.gotoXY(centerX - 20, 10);
-        std::cout << "Player 1 Total Score: " << std::setw(7) << score_[0] << "  |  Stages Won: " << stageWins_[0];
+        std::cout << "Player 1 Total Score: " << std::setw(7) << totalscore_[0] << "  |  Stages Won: " << stageWins_[0];
         renderer_.gotoXY(centerX - 20, 12);
-        std::cout << "Player 2 Total Score: " << std::setw(7) << score_[1] << "  |  Stages Won: " << stageWins_[1];
+        std::cout << "Player 2 Total Score: " << std::setw(7) << totalscore_[1] << "  |  Stages Won: " << stageWins_[1];
 
         renderer_.gotoXY(centerX - 15, 15); renderer_.setColor(YELLOW);
         if (stageWins_[0] > stageWins_[1]) {

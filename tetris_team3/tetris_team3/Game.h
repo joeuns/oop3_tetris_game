@@ -37,6 +37,7 @@ private:
     std::vector<Stage> stages_;
     int level_[2];
     int score_[2];
+    int totalscore_[2];
     int lines_[2];
     bool isGameOver_[2];
     int totalLinesCleared_[2];
