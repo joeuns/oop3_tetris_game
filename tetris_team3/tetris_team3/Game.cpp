@@ -312,10 +312,10 @@ void TetrisGame::run() {
             std::cout << "PLAYER 2 IS THE OVERALL WINNER!";
         }
         else {
-            if (score_[0] > score_[1]) {
+            if (totalscore_[0] > totalscore_[1]) {
                 std::cout << "PLAYER 1 WINS ON SCORE TIE-BREAK!";
             }
-            else if (score_[1] > score_[0]) {
+            else if (totalscore_[1] > totalscore_[0]) {
                 std::cout << "PLAYER 2 WINS ON SCORE TIE-BREAK!";
             }
             else {
