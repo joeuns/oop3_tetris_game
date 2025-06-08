@@ -296,6 +296,8 @@ void TetrisGame::run() {
         }
     }
     else {
+        totalscore_[0] += score_[0];
+        totalscore_[1] += score_[1];
         renderer_.gotoXY(centerX - 10, 8); renderer_.setColor(WHITE);
         std::cout << "--- GAME FINISHED ---";
 
