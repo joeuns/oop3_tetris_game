@@ -197,6 +197,8 @@ void TetrisGame::run() {
             renderer_.drawStats(level_[1], score_[1], stages_[currentLvlP1ForStats].clearLine - lines_[1], 1, (gameMode_ == GameMode::TWO_PLAYER));
 
             int tick = 0;
+            score_[0] = 0;
+            score_[1] = 0;
             while (!isGameOver_[0] || !isGameOver_[1]) {
                 if (_kbhit()) {
                     processInput();
